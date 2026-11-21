@@ -10,6 +10,7 @@ let resume = false, invalid = false, ended = false, busy = false, spinning = fal
 let error = '', offline = 'Готовим игру для работы без интернета', ready = false, update = false;
 let pending: { candidate?: Session; after: () => void } | null = null;
 let registration: ServiceWorkerRegistration | undefined;
+let offlinePreparing = false;
 let lastDraw = -Infinity;
 const sync = 'BroadcastChannel' in window ? new BroadcastChannel(__DB_NAME__) : null;
 const dialog = document.createElement('dialog');
@@ -183,16 +184,37 @@ async function checkOffline() {
   if (!spinning && !dialog.open) render();
 }
 async function prepareOffline() {
+  if (offlinePreparing) return;
   if (!('serviceWorker' in navigator)) { offline='Автономность недоступна в этом браузере';render();return; }
+  offlinePreparing = true;
+  if (!ready) offline='Готовим игру для работы без интернета';
+  if (!spinning && !dialog.open) render();
   try {
     registration=await navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL,type:'module'});
     registration.addEventListener('updatefound', () => {
       const worker=registration!.installing;
       worker?.addEventListener('statechange', () => { if (worker.state==='installed') setTimeout(() => void checkOffline(),100); });
     });
-    await navigator.serviceWorker.ready;
+    // ready never rejects when an initial installation fails. Observe the actual worker instead.
+    if (registration.active?.state !== 'activated') {
+      await new Promise<void>((resolve,reject) => {
+        const worker=registration!.installing || registration!.waiting || registration!.active;
+        if (!worker) {reject(new Error('Установка не завершена'));return;}
+        const finish = (failed:boolean) => {
+          clearTimeout(timer);worker.removeEventListener('statechange',changed);
+          failed ? reject(new Error('Установка не завершена')) : resolve();
+        };
+        const changed=() => {
+          if(worker.state==='activated')finish(false);
+          else if(worker.state==='redundant')finish(true);
+        };
+        const timer=setTimeout(()=>finish(true),15000);
+        worker.addEventListener('statechange',changed);changed();
+      });
+    }
     await checkOffline();
   } catch { ready=false;offline='Не удалось подготовить игру без интернета';render(); }
+  finally {offlinePreparing=false;if(!spinning && !dialog.open)render();}
 }
 if (!history.state?.nashi) history.pushState({nashi:true},'',location.href);
 window.addEventListener('popstate', e => {
