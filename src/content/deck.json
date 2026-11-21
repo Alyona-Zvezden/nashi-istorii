@@ -1,0 +1,485 @@
+{
+  "deckVersion": "base-60-v1",
+  "questions": [
+    {
+      "id": "q001",
+      "displayNumber": 1,
+      "text": "Какое воспоминание из детства первым приходит тебе в голову?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 2
+    },
+    {
+      "id": "q002",
+      "displayNumber": 2,
+      "text": "Где ты больше всего любил(а) проводить время в детстве?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 3
+    },
+    {
+      "id": "q003",
+      "displayNumber": 3,
+      "text": "Какая игра или занятие особенно увлекали тебя в детстве?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 4
+    },
+    {
+      "id": "q004",
+      "displayNumber": 4,
+      "text": "Какие запахи, вкусы или звуки напоминают тебе о детстве?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 5
+    },
+    {
+      "id": "q005",
+      "displayNumber": 5,
+      "text": "Какой случай из детства до сих пор вызывает у тебя улыбку?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 6
+    },
+    {
+      "id": "q006",
+      "displayNumber": 6,
+      "text": "Кем ты мечтал(а) стать в детстве? Почему?",
+      "themeId": "childhood",
+      "depth": 1,
+      "sourceRow": 7
+    },
+    {
+      "id": "q007",
+      "displayNumber": 7,
+      "text": "Какой подарок из детства запомнился тебе больше всего?",
+      "themeId": "childhood",
+      "depth": 2,
+      "sourceRow": 8
+    },
+    {
+      "id": "q008",
+      "displayNumber": 8,
+      "text": "С кем тебе особенно нравилось проводить время в детстве?",
+      "themeId": "childhood",
+      "depth": 2,
+      "sourceRow": 9
+    },
+    {
+      "id": "q009",
+      "displayNumber": 9,
+      "text": "Какая семейная традиция или событие из детства тебе запомнились?",
+      "themeId": "childhood",
+      "depth": 2,
+      "sourceRow": 10
+    },
+    {
+      "id": "q010",
+      "displayNumber": 10,
+      "text": "Какой день из детства тебе хотелось бы прожить ещё раз?",
+      "themeId": "childhood",
+      "depth": 3,
+      "sourceRow": 11
+    },
+    {
+      "id": "q011",
+      "displayNumber": 11,
+      "text": "Что обычно поднимает тебе настроение?",
+      "themeId": "self",
+      "depth": 1,
+      "sourceRow": 12
+    },
+    {
+      "id": "q012",
+      "displayNumber": 12,
+      "text": "Есть ли у тебя необычная привычка, о которой интересно рассказать?",
+      "themeId": "self",
+      "depth": 1,
+      "sourceRow": 13
+    },
+    {
+      "id": "q013",
+      "displayNumber": 13,
+      "text": "Какое занятие приносит тебе удовольствие и легко даётся?",
+      "themeId": "self",
+      "depth": 1,
+      "sourceRow": 14
+    },
+    {
+      "id": "q014",
+      "displayNumber": 14,
+      "text": "Что тебе особенно нравится в себе?",
+      "themeId": "self",
+      "depth": 2,
+      "sourceRow": 15
+    },
+    {
+      "id": "q015",
+      "displayNumber": 15,
+      "text": "Каким своим умением или результатом ты особенно доволен(на)?",
+      "themeId": "self",
+      "depth": 2,
+      "sourceRow": 16
+    },
+    {
+      "id": "q016",
+      "displayNumber": 16,
+      "text": "Что интересного ты заметил(а) в себе за последнее время?",
+      "themeId": "self",
+      "depth": 2,
+      "sourceRow": 17
+    },
+    {
+      "id": "q017",
+      "displayNumber": 17,
+      "text": "Какой свой поступок ты с удовольствием вспоминаешь?",
+      "themeId": "self",
+      "depth": 2,
+      "sourceRow": 18
+    },
+    {
+      "id": "q018",
+      "displayNumber": 18,
+      "text": "Какое занятие настолько тебя увлекает, что ты забываешь о времени?",
+      "themeId": "self",
+      "depth": 2,
+      "sourceRow": 19
+    },
+    {
+      "id": "q019",
+      "displayNumber": 19,
+      "text": "В каких ситуациях тебе легко быть собой?",
+      "themeId": "self",
+      "depth": 3,
+      "sourceRow": 20
+    },
+    {
+      "id": "q020",
+      "displayNumber": 20,
+      "text": "Какое качество ты хотел(а) бы развить в себе?",
+      "themeId": "self",
+      "depth": 3,
+      "sourceRow": 21
+    },
+    {
+      "id": "q021",
+      "displayNumber": 21,
+      "text": "Что для тебя самое важное в дружбе?",
+      "themeId": "relationships",
+      "depth": 1,
+      "sourceRow": 22
+    },
+    {
+      "id": "q022",
+      "displayNumber": 22,
+      "text": "Какой семейный момент ты хотел(а) бы пережить ещё раз?",
+      "themeId": "relationships",
+      "depth": 1,
+      "sourceRow": 23
+    },
+    {
+      "id": "q023",
+      "displayNumber": 23,
+      "text": "Какие проявления заботы и внимания особенно важны для тебя?",
+      "themeId": "relationships",
+      "depth": 2,
+      "sourceRow": 24
+    },
+    {
+      "id": "q024",
+      "displayNumber": 24,
+      "text": "Какой случай, когда о тебе позаботились, тебе особенно запомнился?",
+      "themeId": "relationships",
+      "depth": 2,
+      "sourceRow": 25
+    },
+    {
+      "id": "q025",
+      "displayNumber": 25,
+      "text": "Как ты обычно показываешь близким, что они тебе дороги?",
+      "themeId": "relationships",
+      "depth": 2,
+      "sourceRow": 26
+    },
+    {
+      "id": "q026",
+      "displayNumber": 26,
+      "text": "Чему ты научился(ась) у кого-то из близких?",
+      "themeId": "relationships",
+      "depth": 2,
+      "sourceRow": 27
+    },
+    {
+      "id": "q027",
+      "displayNumber": 27,
+      "text": "Какими качествами людей ты восхищаешься?",
+      "themeId": "relationships",
+      "depth": 2,
+      "sourceRow": 28
+    },
+    {
+      "id": "q028",
+      "displayNumber": 28,
+      "text": "Что помогает тебе поддерживать близкие отношения с людьми?",
+      "themeId": "relationships",
+      "depth": 3,
+      "sourceRow": 29
+    },
+    {
+      "id": "q029",
+      "displayNumber": 29,
+      "text": "Какой вопрос ты хотел(а) бы чаще слышать от своих близких?",
+      "themeId": "relationships",
+      "depth": 3,
+      "sourceRow": 30
+    },
+    {
+      "id": "q030",
+      "displayNumber": 30,
+      "text": "Чем тебе хотелось бы поделиться с близкими?",
+      "themeId": "relationships",
+      "depth": 3,
+      "sourceRow": 31
+    },
+    {
+      "id": "q031",
+      "displayNumber": 31,
+      "text": "В каком городе или стране тебе хотелось бы пожить?",
+      "themeId": "dreams",
+      "depth": 1,
+      "sourceRow": 32
+    },
+    {
+      "id": "q032",
+      "displayNumber": 32,
+      "text": "Какое приключение ты хотел(а) бы однажды пережить?",
+      "themeId": "dreams",
+      "depth": 1,
+      "sourceRow": 33
+    },
+    {
+      "id": "q033",
+      "displayNumber": 33,
+      "text": "Чему ты хотел(а) бы научиться просто ради удовольствия?",
+      "themeId": "dreams",
+      "depth": 1,
+      "sourceRow": 34
+    },
+    {
+      "id": "q034",
+      "displayNumber": 34,
+      "text": "Если бы ты мог(ла) на один день попробовать любую профессию, что бы ты выбрал(а)?",
+      "themeId": "dreams",
+      "depth": 1,
+      "sourceRow": 35
+    },
+    {
+      "id": "q035",
+      "displayNumber": 35,
+      "text": "Что нового ты хотел(а) бы попробовать в ближайший год?",
+      "themeId": "dreams",
+      "depth": 1,
+      "sourceRow": 36
+    },
+    {
+      "id": "q036",
+      "displayNumber": 36,
+      "text": "Если бы у тебя был целый месяц без обязательств, как бы ты его провёл(а)?",
+      "themeId": "dreams",
+      "depth": 2,
+      "sourceRow": 37
+    },
+    {
+      "id": "q037",
+      "displayNumber": 37,
+      "text": "Как выглядит твой идеальный день?",
+      "themeId": "dreams",
+      "depth": 2,
+      "sourceRow": 38
+    },
+    {
+      "id": "q038",
+      "displayNumber": 38,
+      "text": "О какой своей мечте тебе сейчас хочется рассказать?",
+      "themeId": "dreams",
+      "depth": 2,
+      "sourceRow": 39
+    },
+    {
+      "id": "q039",
+      "displayNumber": 39,
+      "text": "Какую свою давнюю задумку тебе хотелось бы осуществить?",
+      "themeId": "dreams",
+      "depth": 2,
+      "sourceRow": 40
+    },
+    {
+      "id": "q040",
+      "displayNumber": 40,
+      "text": "Что интересного или приятного ты хотел(а) бы однажды сделать всей семьёй?",
+      "themeId": "dreams",
+      "depth": 3,
+      "sourceRow": 41
+    },
+    {
+      "id": "q041",
+      "displayNumber": 41,
+      "text": "Какие моменты обычного дня делают твою жизнь радостной?",
+      "themeId": "meanings",
+      "depth": 1,
+      "sourceRow": 42
+    },
+    {
+      "id": "q042",
+      "displayNumber": 42,
+      "text": "Что тебе хотелось бы сказать себе несколько лет назад?",
+      "themeId": "meanings",
+      "depth": 2,
+      "sourceRow": 43
+    },
+    {
+      "id": "q043",
+      "displayNumber": 43,
+      "text": "Какой свой поступок или результат вызывает у тебя гордость?",
+      "themeId": "meanings",
+      "depth": 2,
+      "sourceRow": 44
+    },
+    {
+      "id": "q044",
+      "displayNumber": 44,
+      "text": "Что помогает тебе справляться с трудностями?",
+      "themeId": "meanings",
+      "depth": 2,
+      "sourceRow": 45
+    },
+    {
+      "id": "q045",
+      "displayNumber": 45,
+      "text": "Что ты особенно ценишь в своей жизни сейчас?",
+      "themeId": "meanings",
+      "depth": 2,
+      "sourceRow": 46
+    },
+    {
+      "id": "q046",
+      "displayNumber": 46,
+      "text": "Что для тебя значит быть счастливым(ой)?",
+      "themeId": "meanings",
+      "depth": 3,
+      "sourceRow": 47
+    },
+    {
+      "id": "q047",
+      "displayNumber": 47,
+      "text": "Какое событие в твоей жизни многое для тебя изменило?",
+      "themeId": "meanings",
+      "depth": 3,
+      "sourceRow": 48
+    },
+    {
+      "id": "q048",
+      "displayNumber": 48,
+      "text": "Когда ты чувствуешь, что занимаешься именно тем, чем тебе хочется?",
+      "themeId": "meanings",
+      "depth": 3,
+      "sourceRow": 49
+    },
+    {
+      "id": "q049",
+      "displayNumber": 49,
+      "text": "Какой мыслью о жизни тебе хотелось бы поделиться с другими?",
+      "themeId": "meanings",
+      "depth": 3,
+      "sourceRow": 50
+    },
+    {
+      "id": "q050",
+      "displayNumber": 50,
+      "text": "Какие свои качества тебе особенно важно сохранять в жизни?",
+      "themeId": "meanings",
+      "depth": 3,
+      "sourceRow": 51
+    },
+    {
+      "id": "q051",
+      "displayNumber": 51,
+      "text": "Если бы о твоей жизни сняли фильм, как бы он назывался?",
+      "themeId": "unexpected",
+      "depth": 1,
+      "sourceRow": 52
+    },
+    {
+      "id": "q052",
+      "displayNumber": 52,
+      "text": "Какую суперспособность ты хотел(а) бы получить и для чего её использовал(а) бы?",
+      "themeId": "unexpected",
+      "depth": 1,
+      "sourceRow": 53
+    },
+    {
+      "id": "q053",
+      "displayNumber": 53,
+      "text": "Что бы ты сделал(а), если бы на один день стал(а) невидимым(ой)?",
+      "themeId": "unexpected",
+      "depth": 1,
+      "sourceRow": 54
+    },
+    {
+      "id": "q054",
+      "displayNumber": 54,
+      "text": "Если бы ты оказался(ась) на необитаемом острове, какую одну вещь взял(а) бы с собой?",
+      "themeId": "unexpected",
+      "depth": 1,
+      "sourceRow": 55
+    },
+    {
+      "id": "q055",
+      "displayNumber": 55,
+      "text": "С каким человеком из прошлого тебе хотелось бы встретиться и о чём поговорить?",
+      "themeId": "unexpected",
+      "depth": 2,
+      "sourceRow": 56
+    },
+    {
+      "id": "q056",
+      "displayNumber": 56,
+      "text": "Какой необычный день из своей жизни ты вспоминаешь?",
+      "themeId": "unexpected",
+      "depth": 2,
+      "sourceRow": 57
+    },
+    {
+      "id": "q057",
+      "displayNumber": 57,
+      "text": "Представь, что наша семья отправилась в путешествие без маршрута. Какое приключение тебе хотелось бы пережить?",
+      "themeId": "unexpected",
+      "depth": 2,
+      "sourceRow": 58
+    },
+    {
+      "id": "q058",
+      "displayNumber": 58,
+      "text": "Если бы ты мог(ла) на один день попробовать себя в роли другого члена семьи, чем бы тебе хотелось заняться?",
+      "themeId": "unexpected",
+      "depth": 2,
+      "sourceRow": 59
+    },
+    {
+      "id": "q059",
+      "displayNumber": 59,
+      "text": "Какой вопрос ты сам(а) хотел(а) бы задать всем участникам нашей игры?",
+      "themeId": "unexpected",
+      "depth": 3,
+      "sourceRow": 60
+    },
+    {
+      "id": "q060",
+      "displayNumber": 60,
+      "text": "Какой историей о себе тебе хотелось бы поделиться сегодня?",
+      "themeId": "unexpected",
+      "depth": 3,
+      "sourceRow": 61
+    }
+  ]
+}
