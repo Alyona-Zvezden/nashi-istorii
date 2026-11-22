@@ -223,3 +223,22 @@ test('цвета рулетки совпадают с выбранными пл�
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await expect(page.locator('.gentle-note')).toContainText('Каждый может ответить');
 });
+
+test('основные экраны помещаются по высоте телефона',async({page})=>{
+  for(const size of [{width:360,height:640},{width:390,height:740},{width:412,height:844}]) {
+    await page.setViewportSize(size);
+    const fits=()=>page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1);
+    expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
+    await page.locator('[data-action="pick:unexpected"]').click();
+    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Насколько глубоко?'})).toBeVisible();
+    expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
+    await page.locator('[data-action="pick:2"]').click();
+    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await expect(page.locator('.question-text')).toBeVisible();
+    expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
+    await expect(page.getByRole('button',{name:'Следующий вопрос',exact:true})).toBeInViewport();
+    await page.getByRole('button',{name:'Сменить тему или глубину'}).click();
+    await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
+  }
+});
