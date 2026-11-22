@@ -37,16 +37,16 @@ function render() {
     const isTheme = phase === 'theme';
     const selected = isTheme ? session?.themeId : session?.depth;
     const options = isTheme ? THEMES.map((t,i) => ({ key:t.id, label:t.label, color:t.color, light:t.light, symbol:t.symbol, short:String(i+1), note:'' }))
-      : DEPTHS.map(d => ({ key:String(d.value), label:d.label, color:d.color, light:'#f2f5f7', symbol:String(d.value), short:String(d.value), note:d.description }));
+      : DEPTHS.map(d => ({ key:String(d.value), label:d.label, color:d.color, light:d.light, symbol:String(d.value), short:String(d.value), note:d.description }));
     const heading = isTheme ? 'О чём поговорим?' : 'Насколько глубоко?';
     const restingRotation = selected ? -(options.findIndex(t => String(t.key) === String(selected)) + .5) * 360/options.length : 0;
-    content = '<section class="selection"><div class="screen-intro"><p class="eyebrow">' + (isTheme ? 'СЕМЕЙНАЯ ИГРА ДЛЯ ЖИВОГО РАЗГОВОРА' : escape(theme!.label).toUpperCase()) + '</p><h1 tabindex="-1">' + heading + '</h1><p>' + (isTheme ? 'Выберите тему или доверьтесь случаю' : 'Глубина разговора — это открытость, а не сложность') + '</p></div><div class="choice-layout"><section class="roulette-panel" aria-label="Случайный выбор"><div class="wheel-wrap"><span class="pointer"></span><div class="wheel" style="transform:rotate(' + (spinning ? 0 : restingRotation) + 'deg)">' + wheel(options.map(t => t.light), options.map(t => t.symbol)) + '</div></div><div class="roulette-caption"><p class="eyebrow">МАЛЕНЬКАЯ ИНТРИГА</p><p class="roulette-title">Пусть решит<br>рулетка</p>' + button(spinning ? 'Выбираем…' : 'Крутить','spin','spin-button',disabled) + '</div></section><section class="manual-panel" aria-label="' + (isTheme ? 'Темы' : 'Глубина разговора') + '"><div class="options ' + (isTheme ? '' : 'depth-options') + '">' + options.map(t => {
-      const chosen = String(selected) === String(t.key);
+    content = '<section class="selection"><div class="screen-intro"><p class="eyebrow">' + (isTheme ? 'СЕМЕЙНАЯ ИГРА ДЛЯ ЖИВОГО РАЗГОВОРА' : escape(theme!.label).toUpperCase()) + '</p><h1 tabindex="-1">' + heading + '</h1><p>' + (isTheme ? 'Выберите тему или доверьтесь случаю' : 'Глубина разговора — это открытость, а не сложность') + '</p></div><div class="choice-layout"><section class="roulette-panel" aria-label="Случайный выбор"><div class="wheel-wrap"><span class="pointer"></span><div class="wheel" style="transform:rotate(' + (spinning ? 0 : restingRotation) + 'deg)">' + wheel(options) + '</div></div><div class="roulette-caption"><p class="eyebrow">МАЛЕНЬКАЯ ИНТРИГА</p><p class="roulette-title">Пусть решит<br>рулетка</p>' + button(spinning ? 'Выбираем…' : 'Крутить','spin','spin-button',disabled) + '</div></section><section class="manual-panel" aria-label="' + (isTheme ? 'Темы' : 'Глубина разговора') + '"><div class="options ' + (isTheme ? '' : 'depth-options') + '">' + options.map(t => {
+      const chosen = !spinning && String(selected) === String(t.key);
       return '<button class="option ' + (chosen ? 'chosen' : '') + '" data-action="pick:' + t.key + '" aria-pressed="' + chosen + '" style="--accent:' + t.color + ';--tint:' + t.light + '"' + (disabled ? ' disabled' : '') + '><span class="option-symbol" aria-hidden="true">' + t.symbol + '</span><span><span class="option-title">' + escape(t.label) + '</span>' + (t.note ? '<span class="option-description">' + escape(t.note) + '</span>' : '') + '</span><span class="check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span></button>';
     }).join('') + '</div><p class="selected-result" aria-live="polite">' + (spinning ? 'Рулетка выбирает…' : selected ? 'Выбрано: ' + escape(isTheme ? theme!.label : depth!.label) : 'Можно выбрать любой вариант') + '</p>' + button('Продолжить','continue','primary continue',disabled || !selected) + (!isTheme ? button('Назад к темам','back','text-button',disabled) : '') + '</section></div><p class="gentle-note">' + (isTheme ? 'Здесь нет правильных ответов. Только ваши истории.' : 'Можно выбрать другой уровень или пропустить любой вопрос.') + '</p></section>';
   } else if (phase === 'question') {
     const q = QUESTIONS.find(q => q.id === session!.currentQuestionId)!;
-    content = '<section class="question-screen"><p class="eyebrow">СЛУШАЙТЕ. ВСПОМИНАЙТЕ. УДИВЛЯЙТЕСЬ.</p><article class="question-card" style="--accent:' + theme!.color + ';--tint:' + theme!.light + '"><div class="card-top"><span class="theme-badge">' + escape(theme!.label) + '</span><span class="depth-badge">Уровень ' + depth!.value + ' · ' + depth!.label + '</span></div><span class="quote-mark" aria-hidden="true">“</span><h1 class="question-text" tabindex="-1">' + escape(q.text) + '</h1><div class="card-bottom"><span>Вопрос ' + q.displayNumber + '</span><span aria-hidden="true">✧</span></div></article><p class="gentle-note">Можно ответить обеим, послушать или пропустить.<br>У разговора нет таймера.</p><div class="question-actions">' + button('Следующий вопрос','next','primary',disabled) + button('Пропустить','skip','secondary',disabled) + '</div>' + button('Сменить тему или глубину','change','text-button',disabled) + '</section>';
+    content = '<section class="question-screen"><p class="eyebrow">СЛУШАЙТЕ. ВСПОМИНАЙТЕ. УДИВЛЯЙТЕСЬ.</p><article class="question-card" style="--accent:' + theme!.color + ';--tint:' + theme!.light + '"><div class="card-top"><span class="theme-badge">' + escape(theme!.label) + '</span><span class="depth-badge">Уровень ' + depth!.value + ' · ' + depth!.label + '</span></div><span class="quote-mark" aria-hidden="true">“</span><h1 class="question-text" tabindex="-1">' + escape(q.text) + '</h1><div class="card-bottom"><span>Вопрос ' + q.displayNumber + '</span><span aria-hidden="true">✧</span></div></article><p class="gentle-note">Каждый может ответить, послушать или пропустить.<br>У разговора нет таймера.</p><div class="question-actions">' + button('Следующий вопрос','next','primary',disabled) + button('Пропустить','skip','secondary',disabled) + '</div>' + button('Сменить тему или глубину','change','text-button',disabled) + '</section>';
   } else {
     const all = session!.shownIds.length === QUESTIONS.length;
     content = '<section class="rest-card"><div class="story-symbol">✦</div><h1 tabindex="-1">' + (all ? 'У каждой истории есть продолжение' : 'Попробуем другую тему?') + '</h1><p>' + (all ? 'Все вопросы этой игры уже были показаны. Можно начать новую игру или завершить разговор.' : 'В этой теме и на этом уровне вопросы закончились. Выберите другое сочетание или начните новую игру.') + '</p><div class="stack">' + (!all ? button('Сменить тему или глубину','change','primary',disabled) : '') + button('Начать новую игру','new',all ? 'primary' : 'secondary',disabled) + button('Завершить игру','end','text-button',disabled) + '</div></section>';
@@ -57,14 +57,15 @@ function render() {
   app.querySelector('.brand')?.addEventListener('click', e => { e.preventDefault(); if (!resume && session) void act({type:'change'}); });
   if (focusKey) app.querySelector<HTMLElement>('[data-action="' + focusKey + '"]')?.focus({ preventScroll: true });
 }
-function wheel(colors: string[], symbols: string[]) {
-  const n = colors.length;
-  const paths = colors.map((color,i) => {
+function wheel(options: {key:string; color:string; light:string; symbol:string}[]) {
+  const n = options.length;
+  const paths = options.map((option,i) => {
+    const color = option.color;
     const a = (i * 2 * Math.PI/n) - Math.PI/2, b = ((i+1)*2*Math.PI/n)-Math.PI/2;
     const mid = (a+b)/2;
-    return '<path d="M100 100 L' + (100+96*Math.cos(a)) + ' ' + (100+96*Math.sin(a)) + ' A96 96 0 0 1 ' + (100+96*Math.cos(b)) + ' ' + (100+96*Math.sin(b)) + 'Z" fill="' + color + '" stroke="#fff" stroke-width="2"/><text x="' + (100+63*Math.cos(mid)) + '" y="' + (106+63*Math.sin(mid)) + '" text-anchor="middle" fill="#324e48" font-size="23" font-family="system-ui">' + symbols[i] + '</text>';
+    return '<path data-option="' + option.key + '" d="M100 100 L' + (100+96*Math.cos(a)) + ' ' + (100+96*Math.sin(a)) + ' A96 96 0 0 1 ' + (100+96*Math.cos(b)) + ' ' + (100+96*Math.sin(b)) + 'Z" fill="' + color + '" stroke="#fff" stroke-width="2"/><text x="' + (100+63*Math.cos(mid)) + '" y="' + (106+63*Math.sin(mid)) + '" text-anchor="middle" fill="#fff" font-size="23" font-family="system-ui">' + option.symbol + '</text>';
   }).join('');
-  return '<svg viewBox="0 0 200 200" aria-hidden="true">' + paths + '<circle cx="100" cy="100" r="24" fill="white"/><text x="100" y="108" text-anchor="middle" font-size="25" fill="#255b52">✦</text></svg>';
+  return '<svg viewBox="0 0 200 200" aria-hidden="true">' + paths + '<circle cx="100" cy="100" r="24" fill="white"/><g class="wheel-center" fill="none" stroke="#255b52" stroke-width="2.5" stroke-linejoin="round"><path d="M86 86h21a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5H95l-7 6v-6h-2a5 5 0 0 1-5-5V91a5 5 0 0 1 5-5Z"/><path d="M117 96v13a6 6 0 0 1-6 6h-5l-1 5-6-5"/></g></svg>';
 }
 async function commit(candidate: Session | undefined, after: () => void = () => {}) {
   if (busy) return false;
@@ -99,7 +100,7 @@ function showDialog(title: string, body: string, confirmLabel?: string, confirme
 }
 async function handle(action: string) {
   if (action === 'rules') {
-    showDialog('Как играть', '<p>Выберите тему и глубину разговора — сами или рулеткой. Случайный выбор всегда можно изменить до нажатия «Продолжить».</p><ul><li>На один вопрос можете ответить обе, в любом порядке.</li><li>Короткого ответа достаточно. Можно просто послушать или пропустить.</li><li>Пока одна говорит, другая слушает, не перебивая.</li><li>Не торопитесь: важнее разговор, чем количество карточек.</li></ul><p>Ответы не записываются. На этом телефоне сохраняется только ход игры. Очистка данных сайта удалит сохранение и может удалить автономную версию.</p>');
+    showDialog('Как играть', '<p>Выберите тему и глубину разговора — сами или рулеткой. Случайный выбор всегда можно изменить до нажатия «Продолжить».</p><ul><li>На один вопрос могут ответить все желающие, в любом порядке.</li><li>Короткого ответа достаточно. Можно просто послушать или пропустить.</li><li>Когда кто-то рассказывает, остальные слушают, не перебивая.</li><li>Не торопитесь: важнее разговор, чем количество карточек.</li></ul><p>Ответы не записываются. На этом телефоне сохраняется только ход игры. Очистка данных сайта удалит сохранение и может удалить автономную версию.</p>');
     return;
   }
   if (action === 'reload') { await load(); return; }
@@ -133,15 +134,22 @@ async function handle(action: string) {
     const isTheme = (session?.phase || 'theme') === 'theme';
     const n = isTheme ? 6 : 3, index = randomIndex(n);
     const candidate = transition(session || fresh(), isTheme ? {type:'theme',value:THEMES[index].id} : {type:'depth',value:DEPTHS[index].value});
-    await commit(candidate, () => {
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    spinning = true;
+    const success = await commit(candidate, () => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {spinning=false;return;}
       spinning=true;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        const el = app.querySelector<HTMLElement>('.wheel');
-        if (el) { el.style.transition='transform 1200ms cubic-bezier(.2,.7,.2,1)'; el.style.transform='rotate(' + (1440-(index+.5)*360/n) + 'deg)'; }
-      }));
-      setTimeout(() => { spinning=false; render(); }, 1200);
-    }); return;
+      requestAnimationFrame(() => {
+        const el=app.querySelector<HTMLElement>('.wheel');
+        if (!el) {spinning=false;render();return;}
+        const animation=el.animate([
+          {transform:'rotate(0deg)'},
+          {transform:'rotate(' + (1440-(index+.5)*360/n) + 'deg)'},
+        ],{duration:1200,easing:'cubic-bezier(.2,.7,.2,1)',fill:'forwards'});
+        void animation.finished.then(() => {spinning=false;render();}).catch(() => {spinning=false;render();});
+      });
+    });
+    if (!success) {spinning=false;render();}
+    return;
   }
   if (action === 'continue') { await act({type:'continue'}); return; }
   if (action === 'back' || action === 'change') { await act({type:'change'}); return; }

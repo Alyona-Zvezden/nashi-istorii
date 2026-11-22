@@ -12,3 +12,5 @@ main{padding:35px 0 12px;min-height:60vh}.screen-intro{text-align:center;margin-
 .roulette-panel{flex-wrap:wrap}.roulette-caption{min-width:0}.roulette-title{overflow-wrap:anywhere}.option>span:nth-child(2){min-width:0}button{overflow-wrap:anywhere}
 
 @media(max-width:760px){.options:not(.depth-options){grid-template-columns:repeat(auto-fit,minmax(min(100%,8.7rem),1fr))}.options:not(.depth-options) .option{flex-direction:column;align-items:flex-start;min-height:108px;gap:8px}.options:not(.depth-options) .option-symbol{flex-basis:auto;text-align:left}.option-title{overflow-wrap:normal;hyphens:auto}.eyebrow,.roulette-caption .eyebrow{font-size:max(12px,.68rem)}}
+
+.option{background:var(--tint)}.option.chosen,.option.chosen:hover:not(:disabled){background:var(--accent);color:#fff}.option.chosen .option-symbol,.option.chosen .option-description,.option.chosen .check{color:inherit}

@@ -42,14 +42,21 @@ test('рулетка ждёт подтверждения и позволяет �
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.getByRole('button',{name:'Крутить',exact:true}).click();
   await expect(page.getByRole('button',{name:'Продолжить',exact:true})).toBeDisabled();
+  await expect(page.locator('.option.chosen')).toHaveCount(0);
+  await expect(page.locator('.option[aria-pressed="true"]')).toHaveCount(0);
+  for(const option of await page.locator('.option').all()) await expect(option).toBeDisabled();
   await expect(page.getByRole('button',{name:'Крутить',exact:true})).toBeEnabled();
+  await expect(page.locator('.option.chosen')).toHaveCount(1);
   await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
   expect((await saved(page)).snapshot.shownIds).toEqual([]);
   await expect(page.locator('.wheel')).toHaveAttribute('style',/rotate\(-30deg\)/);
   await page.locator('[data-action="pick:dreams"]').click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await page.getByRole('button',{name:'Крутить',exact:true}).click();
+  await expect(page.locator('.option.chosen')).toHaveCount(0);
+  await expect(page.locator('.depth-options .option').first()).toBeDisabled();
   await expect(page.getByRole('button',{name:'Крутить',exact:true})).toBeEnabled();
+  await expect(page.locator('.option.chosen')).toHaveCount(1);
   await expect(page.getByRole('heading',{name:'Насколько глубоко?'})).toBeVisible();
   expect((await saved(page)).snapshot.shownIds).toEqual([]);
 });
@@ -193,4 +200,26 @@ test('макеты, текст 200% и отсутствие внешних за�
   await page.evaluate(()=>document.documentElement.style.fontSize='18px');
   await choose(page);await page.screenshot({path:'test-results/screenshots/question.png',fullPage:true});
   expect(external).toEqual([]);
+});
+
+test('цвета рулетки совпадают с выбранными плашками; правила для всей семьи',async({page})=>{
+  for(const id of ['childhood','self','relationships','dreams','meanings','unexpected']) {
+    await page.locator('[data-action="pick:'+id+'"]').click();
+    const color=await page.locator('.wheel path[data-option="'+id+'"]').getAttribute('fill');
+    await expect.poll(()=>page.locator('.option.chosen').evaluate(el=>getComputedStyle(el).getPropertyValue('--accent'))).toBe(color);
+  }
+  await expect(page.locator('.wheel-center path')).toHaveCount(2);
+  await expect(page.locator('.wheel text').filter({hasText:'✦'})).toHaveCount(1);
+  await page.getByRole('button',{name:'Как играть'}).click();
+  await expect(page.getByRole('dialog')).toContainText('все желающие');
+  await expect(page.getByRole('dialog')).not.toContainText(/обе|одна говорит|другая слушает/);
+  await page.getByRole('button',{name:'Понятно'}).click();
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  for(const value of [1,2,3]) {
+    await page.locator('[data-action="pick:'+value+'"]').click();
+    const color=await page.locator('.wheel path[data-option="'+value+'"]').getAttribute('fill');
+    await expect.poll(()=>page.locator('.option.chosen').evaluate(el=>getComputedStyle(el).getPropertyValue('--accent'))).toBe(color);
+  }
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await expect(page.locator('.gentle-note')).toContainText('Каждый может ответить');
 });

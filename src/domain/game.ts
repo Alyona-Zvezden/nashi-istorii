@@ -9,9 +9,9 @@ export const THEMES = [
   { id: 'unexpected', label: 'Неожиданные вопросы', short: 'Сюрприз', color: '#a0512b', light: '#fff0e7', symbol: '☄' },
 ] as const;
 export const DEPTHS = [
-  { value: 1, label: 'Лёгкий', description: 'Воспоминания, воображение и маленькие радости', color: '#267265' },
-  { value: 2, label: 'Исследовательский', description: 'Личный опыт и неожиданные открытия', color: '#406b9a' },
-  { value: 3, label: 'Глубокий', description: 'Чувства, ценности и то, что особенно важно', color: '#68519c' },
+  { value: 1, label: 'Лёгкий', description: 'Воспоминания, воображение и маленькие радости', color: '#267265', light: '#eaf7f0' },
+  { value: 2, label: 'Исследовательский', description: 'Личный опыт и неожиданные открытия', color: '#406b9a', light: '#edf4ff' },
+  { value: 3, label: 'Глубокий', description: 'Чувства, ценности и то, что особенно важно', color: '#68519c', light: '#f4efff' },
 ] as const;
 export type ThemeId = typeof THEMES[number]['id'];
 export type Depth = 1 | 2 | 3;
