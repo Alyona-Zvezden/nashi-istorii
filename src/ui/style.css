@@ -55,3 +55,4 @@ main{padding:35px 0 12px;min-height:60vh}.screen-intro{text-align:center;margin-
 @media(max-width:760px) and (max-height:740px){.wheel-wrap{width:92px;flex-basis:92px}.roulette-panel{padding:6px 12px}.depth-options .option{min-height:58px;padding:6px 10px}.option-description{font-size:.8rem}.selection:has(.depth-options) .screen-intro>p:last-child{display:none}.screen-intro{margin-bottom:8px}}
 
 @media(max-width:760px) and (max-height:740px){.options:not(.depth-options) .option{min-height:64px;padding:6px 10px}main{padding-top:8px}.choice-layout{gap:8px}.screen-intro h1{margin-bottom:4px}}
+@media(max-width:760px) and (max-height:740px){.screen-intro>p:last-child{display:none}}
