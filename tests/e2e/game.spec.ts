@@ -229,7 +229,7 @@ test('основные экраны помещаются по высоте те�
     await page.setViewportSize(size);
     await expect(page.locator('.selected-result')).toHaveCount(0);
     await expect(page.locator('.offline-status')).toBeHidden();
-    expect(await page.locator('.wheel-wrap').evaluate(el=>el.getBoundingClientRect().width)).toBe(size.height<=740?138:174);
+    await expect.poll(()=>page.locator('.wheel-wrap').evaluate(el=>el.getBoundingClientRect().width)).toBe(size.height<=740?138:174);
     const fits=()=>page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1);
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await page.locator('[data-action="pick:unexpected"]').click();
