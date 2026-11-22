@@ -24,10 +24,10 @@ test('ошибка первой установки видима, повтор в
     const page=await context.newPage();await page.goto('http://127.0.0.1:48973'+base);
     await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
     await expect(page.locator('.offline-status')).toHaveText('Не удалось подготовить игру без интернета');
-    await expect(page.getByText('Можно играть без интернета',{exact:false})).toHaveCount(0);
+    await expect(page.locator('.page[data-offline-ready="true"]')).toHaveCount(0);
     broken=false;
     await page.getByRole('button',{name:'Повторить подготовку'}).click();
-    await expect(page.getByText('Можно играть без интернета',{exact:false})).toBeVisible();
+    await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
     await page.locator('[data-action="pick:childhood"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
     await page.locator('[data-action="pick:1"]').click();

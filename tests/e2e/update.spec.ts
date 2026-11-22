@@ -33,7 +33,7 @@ test('новый worker сохраняет выпуск активной игр�
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try {
     const page=await context.newPage();await page.goto('http://127.0.0.1:48972'+base);
-    await expect(page.getByText('Можно играть без интернета',{exact:false})).toBeVisible();
+    await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
     await page.locator('[data-action="pick:childhood"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
     await page.locator('[data-action="pick:1"]').click();
@@ -75,6 +75,6 @@ test('новый worker сохраняет выпуск активной игр�
     await cold.getByRole('button',{name:'Обновить приложение'}).click();
     await expect(cold.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
     await expect(cold.locator('meta[name="app-release"]')).toHaveAttribute('content','release-b');
-    await expect(cold.getByText('Можно играть без интернета',{exact:false})).toBeVisible();
+    await expect(cold.locator('.page[data-offline-ready="true"]')).toBeVisible();
   }finally{await context.close();await new Promise<void>(resolve=>server.close(()=>resolve()));}
 });

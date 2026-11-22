@@ -119,7 +119,7 @@ test('abort транзакции не принимает новую карточ
   await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(2);
 });
 test('неизвестная привязка выпуска открывает безопасное восстановление',async({page})=>{
-  await expect(page.getByText('Можно играть без интернета',{exact:false})).toBeVisible();
+  await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
   await choose(page);
   const before=await saved(page);
   await page.evaluate(name=>new Promise<void>(resolve=>{
@@ -170,7 +170,7 @@ test('полная колода исчерпана: только новая иг
   expect((await saved(page)).snapshot.shownIds).toHaveLength(60);
 });
 test('холодный запуск без сети, PWA и изоляция подпапки',async({page,context})=>{
-  await expect(page.getByText('Можно играть без интернета',{exact:false})).toBeVisible();
+  await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
   await choose(page);
   const before=await saved(page);
   const scope=await page.evaluate(async()=> (await navigator.serviceWorker.getRegistration())?.scope);
@@ -227,6 +227,9 @@ test('цвета рулетки совпадают с выбранными пл�
 test('основные экраны помещаются по высоте телефона',async({page})=>{
   for(const size of [{width:360,height:640},{width:390,height:740},{width:412,height:844}]) {
     await page.setViewportSize(size);
+    await expect(page.locator('.selected-result')).toHaveCount(0);
+    await expect(page.locator('.offline-status')).toBeHidden();
+    expect(await page.locator('.wheel-wrap').evaluate(el=>el.getBoundingClientRect().width)).toBe(size.height<=740?138:174);
     const fits=()=>page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1);
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await page.locator('[data-action="pick:unexpected"]').click();
@@ -238,6 +241,7 @@ test('основные экраны помещаются по высоте те�
     await expect(page.locator('.question-text')).toBeVisible();
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await expect(page.getByRole('button',{name:'Следующий вопрос',exact:true})).toBeInViewport();
+    expect(await page.locator('.question-card').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(size.height*.5);
     await page.getByRole('button',{name:'Сменить тему или глубину'}).click();
     await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
   }
