@@ -36,8 +36,7 @@ test('новый worker сохраняет выпуск активной игр�
     await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
     await page.locator('[data-action="pick:childhood"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-    await page.locator('[data-action="pick:1"]').click();
-    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
     const question=await page.locator('.question-text').textContent();
     expect(await page.locator('meta[name="app-release"]').getAttribute('content')).toBe('release-a');
     active='release-b';

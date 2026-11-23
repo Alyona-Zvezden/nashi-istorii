@@ -1,5 +1,5 @@
 import './ui/style.css';
-import { THEMES, DEPTHS, QUESTIONS, createSession, transition, validateSession, randomIndex, type Session, type Action, type ThemeId, type Depth } from './domain/game';
+import { THEMES, QUESTIONS, available, themeAvailable, createSession, transition, validateSession, randomIndex, type Session, type Action, type ThemeId } from './domain/game';
 import { readRaw, commitRaw, fingerprint } from './storage/database';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -11,7 +11,7 @@ let error = '', offline = 'Готовим игру для работы без и
 let pending: { candidate?: Session; after: () => void } | null = null;
 let registration: ServiceWorkerRegistration | undefined;
 let offlinePreparing = false;
-let lastDraw = -Infinity;
+
 const sync = 'BroadcastChannel' in window ? new BroadcastChannel(__DB_NAME__) : null;
 const dialog = document.createElement('dialog');
 document.body.append(dialog);
@@ -24,7 +24,6 @@ function fresh() { return createSession(__BUILD_ID__, crypto.randomUUID()); }
 function render() {
   const phase = session?.phase || 'theme';
   const theme = THEMES.find(t => t.id === session?.themeId);
-  const depth = DEPTHS.find(d => d.value === session?.depth);
   const disabled = busy || spinning || !!error;
   let content = '';
   if (invalid) {
@@ -33,23 +32,25 @@ function render() {
     content = '<section class="rest-card"><div class="story-symbol">♡</div><p class="eyebrow">ВРЕМЯ ДРУГ ДЛЯ ДРУГА</p><h1 tabindex="-1">Продолжим разговор?</h1><p>Ваша игра здесь. Вернитесь к тому вопросу, на котором остановились.</p><div class="stack">' + button('Продолжить','resume','primary',disabled) + button('Начать новую игру','new','secondary',disabled) + '</div></section>';
   } else if (ended) {
     content = '<section class="rest-card"><div class="story-symbol">❋</div><p class="eyebrow">САМОЕ ВАЖНОЕ — БЫТЬ РЯДОМ</p><h1 tabindex="-1">Спасибо за разговор</h1><p>У каждой встречи — свои истории.<br>Возвращайтесь, когда захочется поговорить.</p>' + button('Начать новую игру','start','primary',disabled) + '</section>';
-  } else if (phase === 'theme' || phase === 'depth') {
-    const isTheme = phase === 'theme';
-    const selected = isTheme ? session?.themeId : session?.depth;
-    const options = isTheme ? THEMES.map((t,i) => ({ key:t.id, label:t.label, color:t.color, light:t.light, symbol:t.symbol, short:String(i+1), note:'' }))
-      : DEPTHS.map(d => ({ key:String(d.value), label:d.label, color:d.color, light:d.light, symbol:String(d.value), short:String(d.value), note:d.description }));
-    const heading = isTheme ? 'О чём поговорим?' : 'Насколько глубоко?';
+  } else if (phase === 'depth') {
+    const count = available(session!).length;
+    content = '<section class="card-selection"><div class="screen-intro"><p class="eyebrow">' + escape(theme!.label) + '</p><h1 tabindex="-1">Выберите карточку</h1><p>Любая из них — начало новой истории</p></div><div class="card-spread" aria-label="Карточки рубашкой вверх">' + Array.from({length:count},(_,i) => '<button class="card-back" data-action="draw:' + i + '" aria-label="Открыть карточку"' + (disabled ? ' disabled' : '') + '><span aria-hidden="true">❋</span></button>').join('') + '</div>' + button('Случайная карточка','draw','primary random-card',disabled || !count) + '</section>';
+  } else if (phase === 'theme') {
+    const isTheme = true;
+    const selected = session?.themeId && themeAvailable(session,session.themeId) ? session.themeId : null;
+    const options = THEMES.map((t,i) => ({ key:t.id, label:t.label, color:themeAvailable(session,t.id) ? t.color : '#8a9690', light:t.light, symbol:t.symbol, short:String(i+1), note:themeAvailable(session,t.id) ? '' : 'Все вопросы сыграны' }));
+    const heading = 'О чём поговорим?';
     const restingRotation = selected ? -(options.findIndex(t => String(t.key) === String(selected)) + .5) * 360/options.length : 0;
     content = '<section class="selection"><div class="screen-intro"><p class="eyebrow">' + (isTheme ? 'СЕМЕЙНАЯ ИГРА ДЛЯ ЖИВОГО РАЗГОВОРА' : escape(theme!.label).toUpperCase()) + '</p><h1 tabindex="-1">' + heading + '</h1><p>' + (isTheme ? 'Выберите тему или доверьтесь случаю' : 'Глубина разговора — это открытость, а не сложность') + '</p></div><div class="choice-layout"><section class="roulette-panel" aria-label="Случайный выбор"><div class="wheel-wrap"><span class="pointer"></span><div class="wheel" style="transform:rotate(' + (spinning ? 0 : restingRotation) + 'deg)">' + wheel(options) + '</div></div><div class="roulette-caption"><p class="eyebrow">МАЛЕНЬКАЯ ИНТРИГА</p><p class="roulette-title">Пусть решит<br>рулетка</p>' + button(spinning ? 'Выбираем…' : 'Крутить','spin','spin-button',disabled) + '</div></section><section class="manual-panel" aria-label="' + (isTheme ? 'Темы' : 'Глубина разговора') + '"><div class="options ' + (isTheme ? '' : 'depth-options') + '">' + options.map(t => {
       const chosen = !spinning && String(selected) === String(t.key);
-      return '<button class="option ' + (chosen ? 'chosen' : '') + '" data-action="pick:' + t.key + '" aria-pressed="' + chosen + '" style="--accent:' + t.color + ';--tint:' + t.light + '"' + (disabled ? ' disabled' : '') + '><span class="option-symbol" aria-hidden="true">' + t.symbol + '</span><span><span class="option-title">' + escape(t.label) + '</span>' + (t.note ? '<span class="option-description">' + escape(t.note) + '</span>' : '') + '</span><span class="check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span></button>';
+      return '<button class="option ' + (chosen ? 'chosen' : '') + (!themeAvailable(session,t.key) ? ' depleted' : '') + '" data-action="pick:' + t.key + '" aria-pressed="' + chosen + '" style="--accent:' + t.color + ';--tint:' + t.light + '"' + (disabled || !themeAvailable(session,t.key) ? ' disabled' : '') + '><span class="option-symbol" aria-hidden="true">' + t.symbol + '</span><span><span class="option-title">' + escape(t.label) + '</span>' + (t.note ? '<span class="option-description">' + escape(t.note) + '</span>' : '') + '</span><span class="check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span></button>';
     }).join('') + '</div>' + button('Продолжить','continue','primary continue',disabled || !selected)  + '</section></div><p class="gentle-note">' + (isTheme ? 'Здесь нет правильных ответов. Только ваши истории.' : 'Можно выбрать другой уровень или пропустить любой вопрос.') + '</p></section>';
   } else if (phase === 'question') {
     const q = QUESTIONS.find(q => q.id === session!.currentQuestionId)!;
-    content = '<section class="question-screen"><p class="eyebrow">СЛУШАЙТЕ. ВСПОМИНАЙТЕ. УДИВЛЯЙТЕСЬ.</p><article class="question-card" style="--accent:' + theme!.color + ';--tint:' + theme!.light + '"><div class="card-top"><span class="theme-badge">' + escape(theme!.label) + '</span><span class="depth-badge">Уровень ' + depth!.value + ' · ' + depth!.label + '</span></div><span class="quote-mark" aria-hidden="true">“</span><h1 class="question-text" tabindex="-1">' + escape(q.text) + '</h1><div class="card-bottom"><span>Вопрос ' + q.displayNumber + '</span><span aria-hidden="true">✧</span></div></article><p class="gentle-note">Каждый может ответить, послушать или пропустить.<br>У разговора нет таймера.</p><div class="question-actions">' + button('Следующий вопрос','next','primary',disabled) + button('Пропустить','skip','secondary',disabled) + '</div>' + button('Сменить тему или глубину','change','text-button',disabled) + '</section>';
+    content = '<section class="question-screen"><p class="eyebrow">СЛУШАЙТЕ. ВСПОМИНАЙТЕ. УДИВЛЯЙТЕСЬ.</p><article class="question-card" style="--accent:' + theme!.color + ';--tint:' + theme!.light + '"><div class="card-top"><span class="theme-badge">' + escape(theme!.label) + '</span></div><span class="quote-mark" aria-hidden="true">“</span><h1 class="question-text" tabindex="-1">' + escape(q.text) + '</h1><div class="card-bottom"><span>Вопрос ' + q.displayNumber + '</span><span aria-hidden="true">✧</span></div></article><p class="gentle-note">Каждый может ответить, послушать или пропустить.<br>У разговора нет таймера.</p><div class="question-actions">' + button('Выбрать карточку','next','primary',disabled) + button('Пропустить','skip','secondary',disabled) + '</div>' + button('Сменить тему','change','text-button',disabled) + '</section>';
   } else {
     const all = session!.shownIds.length === QUESTIONS.length;
-    content = '<section class="rest-card"><div class="story-symbol">✦</div><h1 tabindex="-1">' + (all ? 'У каждой истории есть продолжение' : 'Попробуем другую тему?') + '</h1><p>' + (all ? 'Все вопросы этой игры уже были показаны. Можно начать новую игру или завершить разговор.' : 'В этой теме и на этом уровне вопросы закончились. Выберите другое сочетание или начните новую игру.') + '</p><div class="stack">' + (!all ? button('Сменить тему или глубину','change','primary',disabled) : '') + button('Начать новую игру','new',all ? 'primary' : 'secondary',disabled) + button('Завершить игру','end','text-button',disabled) + '</div></section>';
+    content = '<section class="rest-card"><div class="story-symbol">✦</div><h1 tabindex="-1">' + (all ? 'У каждой истории есть продолжение' : 'Попробуем другую тему?') + '</h1><p>' + (all ? 'Все вопросы этой игры уже были показаны. Можно начать новую игру или завершить разговор.' : 'Все вопросы этой темы уже показаны. Выберите другую тему или начните новую игру.') + '</p><div class="stack">' + (!all ? button('Сменить тему','change','primary',disabled) : '') + button('Начать новую игру','new',all ? 'primary' : 'secondary',disabled) + button('Завершить игру','end','text-button',disabled) + '</div></section>';
   }
   const focusKey = (document.activeElement as HTMLElement)?.dataset.action;
   app.innerHTML = '<div class="page" data-screen="' + (resume || invalid || ended ? 'rest' : phase) + '" data-offline-ready="' + ready + '"><header class="site-header"><a class="brand" href="' + import.meta.env.BASE_URL + '" aria-label="Наши истории — главная"><span class="brand-mark" aria-hidden="true">❋</span><span>Наши истории</span></a>' + button('Как играть','rules','text-button') + '</header><main>' + (error ? '<div class="error" role="alert"><p>' + escape(error) + '</p>' + (pending ? button('Повторить','retry','secondary') : button('Загрузить сохранённую игру','reload','secondary')) + '</div>' : '') + content + '</main><footer>' + (!resume && phase === 'depth' ? button('Назад к темам','back','text-button',disabled) : '') + (session && !resume && !invalid && phase !== 'exhausted' ? button('Завершить игру','end','text-button',disabled) : '') + '<p class="offline-status" hidden>' + (ready ? '<span aria-hidden="true">✓ </span>' : '') + escape(offline) + '</p>' + (!ready && offline.startsWith('Не удалось') ? button('Повторить подготовку','offline','text-button') : '') + (update ? (session ? '<p>Обновление готово. Его можно применить после игры.</p>' : button('Обновить приложение','update','text-button')) : '') + '<p class="footer-line">Ближе друг к другу, история за историей</p></footer></div>';
@@ -100,7 +101,7 @@ function showDialog(title: string, body: string, confirmLabel?: string, confirme
 }
 async function handle(action: string) {
   if (action === 'rules') {
-    showDialog('Как играть', '<p>Выберите тему и глубину разговора — сами или рулеткой. Случайный выбор всегда можно изменить до нажатия «Продолжить».</p><ul><li>На один вопрос могут ответить все желающие, в любом порядке.</li><li>Короткого ответа достаточно. Можно просто послушать или пропустить.</li><li>Когда кто-то рассказывает, остальные слушают, не перебивая.</li><li>Не торопитесь: важнее разговор, чем количество карточек.</li></ul><p>После первой успешной загрузки можно играть без интернета. ' + escape(offline) + '<br>Ответы не записываются. На этом телефоне сохраняется только ход игры. Очистка данных сайта удалит сохранение и может удалить автономную версию.</p>');
+    showDialog('Как играть', '<p>Выберите тему сами или рулеткой и нажмите «Продолжить». Затем откройте любую карточку рубашкой вверх или нажмите «Случайная карточка». После ответа или пропуска выбирайте следующую. Вопросы всех уровней перемешаны; повторов в одной игре нет. Сыгранные темы становятся серыми и недоступными.</p><ul><li>На один вопрос могут ответить все желающие, в любом порядке.</li><li>Короткого ответа достаточно. Можно просто послушать или пропустить.</li><li>Когда кто-то рассказывает, остальные слушают, не перебивая.</li><li>Не торопитесь: важнее разговор, чем количество карточек.</li></ul><p>После первой успешной загрузки можно играть без интернета. ' + escape(offline) + '<br>Ответы не записываются. На этом телефоне сохраняется только ход игры. Очистка данных сайта удалит сохранение и может удалить автономную версию.</p>');
     return;
   }
   if (action === 'reload') { await load(); return; }
@@ -128,12 +129,14 @@ async function handle(action: string) {
   }
   if (action.startsWith('pick:')) {
     const value = action.slice(5);
-    await act((session?.phase || 'theme') === 'theme' ? {type:'theme',value:value as ThemeId} : {type:'depth',value:Number(value) as Depth}); return;
+    await act({type:'theme',value:value as ThemeId}); return;
   }
   if (action === 'spin') {
-    const isTheme = (session?.phase || 'theme') === 'theme';
-    const n = isTheme ? 6 : 3, index = randomIndex(n);
-    const candidate = transition(session || fresh(), isTheme ? {type:'theme',value:THEMES[index].id} : {type:'depth',value:DEPTHS[index].value});
+    const choices = THEMES.filter(t=>themeAvailable(session,t.id));
+    if (!choices.length) return;
+    const chosen = choices[randomIndex(choices.length)];
+    const n = THEMES.length, index = THEMES.indexOf(chosen);
+    const candidate = transition(session || fresh(), {type:'theme',value:chosen.id});
     spinning = true;
     const success = await commit(candidate, () => {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) {spinning=false;return;}
@@ -151,12 +154,15 @@ async function handle(action: string) {
     if (!success) {spinning=false;render();}
     return;
   }
+  if (action === 'draw' || action.startsWith('draw:')) {
+    if (session?.phase !== 'depth') return;
+    await act({type:'draw',index:action === 'draw' ? undefined : Number(action.slice(5))}); return;
+  }
   if (action === 'continue') { await act({type:'continue'}); return; }
   if (action === 'back' || action === 'change') { await act({type:'change'}); return; }
   if (action === 'next' || action === 'skip') {
-    if (performance.now() - lastDraw < 350) return;
-    lastDraw=performance.now();
-    await act({type:'next'});
+    if (session?.phase !== 'question') return;
+    await act({type:'layout'});
   }
 }
 async function load() {

@@ -24,7 +24,7 @@ export interface Session {
   currentQuestionId: string | null; shownIds: string[];
 }
 export type Action = { type: 'theme'; value: ThemeId } | { type: 'depth'; value: Depth }
-  | { type: 'continue' } | { type: 'next' } | { type: 'change' } | { type: 'back' };
+  | { type: 'draw'; index?: number } | { type: 'layout' } | { type: 'continue' } | { type: 'next' } | { type: 'change' } | { type: 'back' };
 export function randomIndex(count: number, random: () => number = Math.random): number {
   const value = random();
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(value) || value < 0 || value >= 1) throw new Error('Неверный случайный выбор');
@@ -35,29 +35,39 @@ export function createSession(buildId: string, id: string, now = new Date().toIS
     startedAt: now, updatedAt: now, phase: 'theme', themeId: null, depth: null, currentQuestionId: null, shownIds: [] };
 }
 export function available(s: Session): Question[] {
-  return QUESTIONS.filter(q => q.themeId === s.themeId && q.depth === s.depth && !s.shownIds.includes(q.id));
+  return QUESTIONS.filter(q => q.themeId === s.themeId && !s.shownIds.includes(q.id));
 }
+export function themeAvailable(s: Session | undefined, id: ThemeId): boolean { return QUESTIONS.some(q => q.themeId === id && !s?.shownIds.includes(q.id)); }
 export function transition(s: Session, action: Action, random = Math.random): Session {
   validateSession(s);
   const next = { ...s, shownIds: [...s.shownIds], revision: s.revision + 1, updatedAt: new Date().toISOString() };
-  const draw = () => {
+  const draw = (index?: number) => {
     const choices = available(next);
     if (!choices.length) { next.phase = 'exhausted'; next.currentQuestionId = null; return; }
+    if (index !== undefined && (!Number.isInteger(index) || index < 0 || index >= choices.length)) throw new Error('Неизвестная карточка');
     const q = choices[randomIndex(choices.length, random)];
+    next.depth = q.depth as Depth;
     next.phase = 'question'; next.currentQuestionId = q.id; next.shownIds.push(q.id);
   };
   switch (action.type) {
     case 'theme':
-      if (s.phase !== 'theme' || !THEMES.some(t => t.id === action.value)) throw new Error('Выберите тему');
+      if (s.phase !== 'theme' || !THEMES.some(t => t.id === action.value) || !themeAvailable(s, action.value)) throw new Error('Выберите тему');
       next.themeId = action.value; break;
     case 'depth':
       if (s.phase !== 'depth' || ![1,2,3].includes(action.value)) throw new Error('Выберите глубину');
       next.depth = action.value; break;
     case 'continue':
       if (s.phase === 'theme' && s.themeId) next.phase = 'depth';
-      else if (s.phase === 'depth' && s.depth) draw();
+      else if (s.phase === 'depth') draw();
       else throw new Error('Сначала сделайте выбор');
       break;
+    case 'draw':
+      if (s.phase !== 'depth') throw new Error('Откройте раскладку');
+      draw(action.index); break;
+    case 'layout':
+      if (s.phase !== 'question') throw new Error('Карточка не открыта');
+      next.currentQuestionId = null; next.depth = null;
+      next.phase = available(next).length ? 'depth' : 'exhausted'; break;
     case 'next':
       if (s.phase !== 'question') throw new Error('Карточка не открыта');
       draw(); break;
@@ -80,7 +90,7 @@ export function validateSession(input: unknown): asserts input is Session {
   if (s.phase === 'theme' && (s.depth !== null || s.currentQuestionId !== null)) throw new Error('Повреждён выбор темы');
   if (s.phase !== 'theme' && !s.themeId) throw new Error('Неизвестная тема');
   if (s.phase === 'depth' && s.currentQuestionId !== null) throw new Error('Повреждён выбор глубины');
-  if (['question','exhausted'].includes(s.phase) && !s.depth) throw new Error('Неизвестная глубина');
+  if (s.phase === 'question' && !s.depth) throw new Error('Неизвестная глубина');
   if (s.phase === 'question') {
     const q = QUESTIONS.find(q => q.id === s.currentQuestionId);
     if (!q || !s.shownIds.includes(q.id) || q.themeId !== s.themeId || q.depth !== s.depth) throw new Error('Неизвестный вопрос');

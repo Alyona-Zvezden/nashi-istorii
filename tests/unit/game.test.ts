@@ -17,11 +17,11 @@ describe('Случайность', () => {
 describe('Жизненный цикл игры', () => {
   it('все 60 карточек можно показать без повторов между сочетаниями', () => {
     let s=fresh(); const drawn:string[]=[];
-    for (const theme of THEMES) for (const depth of DEPTHS) {
+    for (const theme of THEMES) {
       s=transition(s,{type:'change'});
       s=transition(s,{type:'theme',value:theme.id});
       s=transition(s,{type:'continue'});
-      s=transition(s,{type:'depth',value:depth.value});
+
       s=transition(s,{type:'continue'},()=>0);
       while(s.phase==='question') {
         drawn.push(s.currentQuestionId!);s=transition(s,{type:'next'},()=>0);
@@ -32,15 +32,31 @@ describe('Жизненный цикл игры', () => {
     expect(new Set(drawn)).toEqual(new Set(QUESTIONS.map(q=>q.id)));
     expect(s.shownIds).toHaveLength(60);
   });
-  it('сохраняет последний вопрос до следующего действия, затем исчерпание', () => {
+  it('последняя карточка остаётся открытой; затем тема недоступна', () => {
     let s=transition(fresh(),{type:'theme',value:'childhood'});
-    s=transition(s,{type:'continue'});s=transition(s,{type:'depth',value:3});
     s=transition(s,{type:'continue'});
-    expect(s.currentQuestionId).toBe('q010');expect(available(s)).toHaveLength(0);
-    validateSession(s);
-    const before=JSON.stringify(s);const next=transition(s,{type:'next'});
-    expect(next.phase).toBe('exhausted');expect(JSON.stringify(s)).toBe(before);
-    expect(next.shownIds).toEqual(['q010']);
+    for(let i=0;i<10;i++) {
+      expect(s.phase).toBe('depth');
+      s=transition(s,{type:'draw',index:0},()=>0);
+      expect(s.phase).toBe('question');
+      expect(s.shownIds).toHaveLength(i+1);
+      validateSession(s);
+      s=transition(s,{type:'layout'});
+    }
+    expect(s.phase).toBe('exhausted');
+    s=transition(s,{type:'change'});
+    expect(()=>transition(s,{type:'theme',value:'childhood'})).toThrow();
+  });
+  it('выбор из рубашек и случайный выбор охватывают все уровни с равными шансами', () => {
+    let s=transition(fresh(),{type:'theme',value:'childhood'});
+    s=transition(s,{type:'continue'});
+    const pool=available(s);
+    for(let i=0;i<pool.length;i++) {
+      const drawn=transition(s,{type:'draw'},()=>(i+.5)/pool.length);
+      expect(drawn.currentQuestionId).toBe(pool[i].id);
+    }
+    expect(new Set(pool.map(q=>q.depth)).size).toBe(3);
+    expect(()=>transition(s,{type:'draw',index:10})).toThrow();
   });
   it('выбор темы и глубины не расходует карточки и не зависит от исчерпания', () => {
     let s=fresh();

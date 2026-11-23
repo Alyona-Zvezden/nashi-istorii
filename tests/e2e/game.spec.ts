@@ -10,13 +10,11 @@ async function saved(page: Page) {
     };
   }),DB);
 }
-async function choose(page: Page, theme='childhood', depth=1) {
+async function choose(page: Page, theme='childhood') {
   await page.locator('[data-action="pick:'+theme+'"]').click();
   await expect(page.locator('[data-action="pick:'+theme+'"]')).toHaveAttribute('aria-pressed','true');
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await page.locator('[data-action="pick:'+depth+'"]').click();
-  await expect(page.locator('[data-action="pick:'+depth+'"]')).toHaveAttribute('aria-pressed','true');
-  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
   await expect(page.locator('.question-text')).toBeVisible();
 }
 test.beforeEach(async({page})=>{
@@ -29,6 +27,7 @@ test('ручной выбор, пропуск и точное восстанов
   await choose(page);
   const first=await saved(page);
   await page.getByRole('button',{name:'Пропустить',exact:true}).click();
+  await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
   await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(2);
   const second=await saved(page);
   expect(second.snapshot.currentQuestionId).not.toBe(first.snapshot.currentQuestionId);
@@ -52,26 +51,29 @@ test('рулетка ждёт подтверждения и позволяет �
   await expect(page.locator('.wheel')).toHaveAttribute('style',/rotate\(-30deg\)/);
   await page.locator('[data-action="pick:dreams"]').click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await page.getByRole('button',{name:'Крутить',exact:true}).click();
-  await expect(page.locator('.option.chosen')).toHaveCount(0);
-  await expect(page.locator('.depth-options .option').first()).toBeDisabled();
-  await expect(page.getByRole('button',{name:'Крутить',exact:true})).toBeEnabled();
-  await expect(page.locator('.option.chosen')).toHaveCount(1);
-  await expect(page.getByRole('heading',{name:'Насколько глубоко?'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Выберите карточку'})).toBeVisible();
+  await expect(page.locator('.card-back')).toHaveCount(10);
   expect((await saved(page)).snapshot.shownIds).toEqual([]);
 });
-test('сочетание с одной карточкой исчерпывается без повторов',async({page})=>{
-  await choose(page,'childhood',3);
-  await expect(page.locator('.card-bottom')).toContainText('Вопрос 10');
-  await page.getByRole('button',{name:'Пропустить',exact:true}).click();
-  await expect(page.getByText('В этой теме и на этом уровне вопросы закончились.',{exact:false})).toBeVisible();
-  await page.getByRole('button',{name:'Сменить тему или глубину',exact:true}).click();
-  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await page.locator('[data-action="pick:3"]').click();
-  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Попробуем другую тему?'})).toBeVisible();
-  expect((await saved(page)).snapshot.shownIds).toEqual(['q010']);
+test('вся тема исчерпывается, становится серой и исключается из рулетки',async({page})=>{
+  await choose(page);
+  for(let i=1;i<=10;i++) {
+    await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(i);
+    await page.getByRole('button',{name:'Пропустить',exact:true}).click();
+    if(i<10) {
+      await expect(page.locator('.card-back')).toHaveCount(10-i);
+      await page.locator('.card-back').last().click();
+    }
+  }
+  await expect(page.getByText('Все вопросы этой темы уже показаны.',{exact:false})).toBeVisible();
+  await page.getByRole('button',{name:'Сменить тему',exact:true}).click();
+  await expect(page.locator('[data-action="pick:childhood"]')).toBeDisabled();
+  await expect(page.locator('[data-action="pick:childhood"]')).toHaveClass(/depleted/);
+  await page.getByRole('button',{name:'Крутить',exact:true}).click();
+  await expect(page.locator('.option.chosen')).not.toHaveAttribute('data-action','pick:childhood');
+  expect(new Set((await saved(page)).snapshot.shownIds).size).toBe(10);
 });
+
 test('отмена новой игры и завершения сохраняет карточку',async({page})=>{
   await choose(page);
   const before=await saved(page);
@@ -110,12 +112,13 @@ test('abort транзакции не принимает новую карточ
       queueMicrotask(()=>this.transaction.abort());return request;
     };
   });
-  await page.getByRole('button',{name:'Следующий вопрос',exact:true}).click();
+  await page.getByRole('button',{name:'Выбрать карточку',exact:true}).click();
   await expect(page.getByRole('alert')).toContainText('Не удалось сохранить');
   expect(await saved(page)).toEqual(before);
   await expect(page.locator('.question-text')).toHaveText(text!);
   await page.evaluate(()=>(window as any).restorePut());
   await page.getByRole('button',{name:'Повторить',exact:true}).click();
+  await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
   await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(2);
 });
 test('неизвестная привязка выпуска открывает безопасное восстановление',async({page})=>{
@@ -140,14 +143,15 @@ test('неизвестная привязка выпуска открывает 
 });
 test('двойной тап не расходует две карточки',async({page})=>{
   await choose(page);
-  await page.getByRole('button',{name:'Следующий вопрос',exact:true}).dblclick();
+  await page.getByRole('button',{name:'Выбрать карточку',exact:true}).click();
+  await page.getByRole('button',{name:'Случайная карточка',exact:true}).dblclick();
   await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(2);
 });
 test('другая вкладка не перезаписывает новую revision',async({page,context})=>{
   await choose(page);
   const other=await context.newPage();await other.goto('./');
   await other.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await other.getByRole('button',{name:'Следующий вопрос',exact:true}).click();
+  await other.getByRole('button',{name:'Выбрать карточку',exact:true}).click();
   const latest=await saved(other);
   await page.bringToFront();
   await expect(page.getByRole('alert')).toContainText('другой вкладке');
@@ -166,7 +170,7 @@ test('полная колода исчерпана: только новая иг
   }),DB);
   await page.reload();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await expect(page.getByText('Все вопросы этой игры уже были показаны.',{exact:false})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Сменить тему или глубину'})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Сменить тему'})).toHaveCount(0);
   expect((await saved(page)).snapshot.shownIds).toHaveLength(60);
 });
 test('холодный запуск без сети, PWA и изоляция подпапки',async({page,context})=>{
@@ -215,12 +219,7 @@ test('цвета рулетки совпадают с выбранными пл�
   await expect(page.getByRole('dialog')).not.toContainText(/обе|одна говорит|другая слушает/);
   await page.getByRole('button',{name:'Понятно'}).click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  for(const value of [1,2,3]) {
-    await page.locator('[data-action="pick:'+value+'"]').click();
-    const color=await page.locator('.wheel path[data-option="'+value+'"]').getAttribute('fill');
-    await expect.poll(()=>page.locator('.option.chosen').evaluate(el=>getComputedStyle(el).getPropertyValue('--accent'))).toBe(color);
-  }
-  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
   await expect(page.locator('.gentle-note')).toContainText('Каждый может ответить');
 });
 
@@ -234,15 +233,32 @@ test('основные экраны помещаются по высоте те�
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await page.locator('[data-action="pick:unexpected"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-    await expect(page.getByRole('heading',{name:'Насколько глубоко?'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Выберите карточку'})).toBeVisible();
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
-    await page.locator('[data-action="pick:2"]').click();
-    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await page.locator('.card-back').first().click();
     await expect(page.locator('.question-text')).toBeVisible();
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
-    await expect(page.getByRole('button',{name:'Следующий вопрос',exact:true})).toBeInViewport();
+    await expect(page.getByRole('button',{name:'Выбрать карточку',exact:true})).toBeInViewport();
     expect(await page.locator('.question-card').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThan(size.height*.5);
-    await page.getByRole('button',{name:'Сменить тему или глубину'}).click();
+    await page.getByRole('button',{name:'Сменить тему'}).click();
     await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
   }
+});
+
+test('рубашки одинаковые, раскладка восстанавливается после закрытия',async({page})=>{
+  await page.setViewportSize({width:390,height:740});
+  await page.locator('[data-action="pick:childhood"]').click();
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await expect(page.locator('.card-back')).toHaveCount(10);
+  expect(new Set(await page.locator('.card-back').allTextContents()).size).toBe(1);
+  await expect(page.locator('.depth-options,.question-text')).toHaveCount(0);
+  await page.screenshot({path:'test-results/screenshots/cards.png',fullPage:true});
+  await page.locator('.card-back').nth(4).click();
+  await page.getByRole('button',{name:'Пропустить',exact:true}).click();
+  await expect(page.locator('.card-back')).toHaveCount(9);
+  const before=await saved(page);
+  await page.reload();
+  await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await expect(page.locator('.card-back')).toHaveCount(9);
+  expect(await saved(page)).toEqual(before);
 });

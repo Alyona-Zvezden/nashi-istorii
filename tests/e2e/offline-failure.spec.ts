@@ -30,8 +30,7 @@ test('ошибка первой установки видима, повтор в
     await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
     await page.locator('[data-action="pick:childhood"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-    await page.locator('[data-action="pick:1"]').click();
-    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
     const question=await page.locator('.question-text').textContent();
     await page.close();await context.setOffline(true);
     const cold=await context.newPage();await cold.goto('http://127.0.0.1:48973'+base);

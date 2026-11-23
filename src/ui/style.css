@@ -77,3 +77,11 @@ footer:has([data-action="back"])>p{flex-basis:100%}
 }
 @media(max-width:760px) and (max-height:740px){.wheel-wrap{width:138px;flex-basis:138px}}
 @media(max-width:760px) and (max-height:740px){.question-text{font-size:1.5rem;margin:18px 0}.question-card{padding:16px 18px}}
+
+/* Face-down deck: identical backs, responsive three-row table. */
+.card-selection{max-width:720px;margin:auto;text-align:center}.card-spread{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:24px 0}.card-back{position:relative;aspect-ratio:3/4;min-height:48px;padding:8px;border:3px solid #fff;border-radius:14px;color:#f5e8c8;background:repeating-linear-gradient(45deg,#ffffff08 0 2px,transparent 2px 12px),#255b52;box-shadow:0 3px 9px #183c3026;display:grid;place-items:center;transition:transform .18s}.card-back:before{content:'';position:absolute;inset:7px;border:1px solid #d8c59888;border-radius:7px}.card-back span{font-size:clamp(24px,5vw,44px)}.card-back:hover:not(:disabled){transform:translateY(-4px);background-color:#17473f}.random-card{width:100%;max-width:400px}.option.depleted{background:#e4e7e5;color:#626c66;border-color:#ccd2ce;opacity:1}.option.depleted .option-symbol{color:#7a857e}.option.depleted .option-description{font-size:.7rem;line-height:1.1;color:#626c66}
+@media(max-width:760px){.card-spread{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.card-back{max-height:130px}.card-selection .eyebrow{display:block;margin:0 0 8px;font-size:.8rem;letter-spacing:0}.card-selection .screen-intro>p:last-child{display:block}.card-back:last-child:nth-child(4n+1){grid-column:2}.card-selection{width:100%}}
+@media(max-width:760px) and (max-height:740px){.card-spread{gap:8px;margin:12px 0}.card-back{max-height:96px}.card-selection .screen-intro>p:last-child{display:none}}
+
+@keyframes reveal-card{from{opacity:0;transform:perspective(900px) rotateY(-18deg) translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){.question-card{animation:reveal-card .32s ease-out}}
