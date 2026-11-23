@@ -20,7 +20,7 @@ async function choose(page: Page, theme='childhood') {
 test.beforeEach(async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.addInitScript(()=>{Math.random=()=>.125;});
-  await page.goto('./');
+  await page.goto('./');await page.getByRole('button',{name:'Играть',exact:true}).click();
   await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
 });
 test('ручной выбор, пропуск и точное восстановление',async({page})=>{
@@ -31,7 +31,7 @@ test('ручной выбор, пропуск и точное восстанов
   await expect.poll(async()=> (await saved(page)).snapshot.shownIds.length).toBe(2);
   const second=await saved(page);
   expect(second.snapshot.currentQuestionId).not.toBe(first.snapshot.currentQuestionId);
-  await page.reload();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Продолжим разговор?'})).toBeVisible();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   expect((await saved(page)).snapshot).toEqual(second.snapshot);
@@ -80,7 +80,7 @@ test('отмена новой игры и завершения сохраняе�
   await page.getByRole('button',{name:'Завершить игру',exact:true}).click();
   await page.getByRole('button',{name:'Остаться',exact:true}).click();
   expect(await saved(page)).toEqual(before);
-  await page.reload();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();
   await page.getByRole('button',{name:'Начать новую игру',exact:true}).click();
   await page.getByRole('button',{name:'Остаться',exact:true}).click();
   expect(await saved(page)).toEqual(before);
@@ -94,7 +94,7 @@ test('повреждённое сохранение не удаляется бе
   await page.evaluate(name=>new Promise<void>(resolve=>{
     const r=indexedDB.open(name);r.onsuccess=()=>{const db=r.result,tx=db.transaction('session','readwrite');tx.objectStore('session').put({schemaVersion:999},'active');tx.oncomplete=()=>{db.close();resolve();};};
   }),DB);
-  await page.reload();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Сохранение недоступно'})).toBeVisible();
   expect((await saved(page)).snapshot.schemaVersion).toBe(999);
   await page.getByRole('button',{name:'Начать новую игру',exact:true}).click();
@@ -131,7 +131,7 @@ test('неизвестная привязка выпуска открывает 
       tx.oncomplete=()=>{db.close();resolve();};
     };
   }),DB);
-  await page.reload();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Сохранение недоступно'})).toBeVisible();
   expect((await saved(page)).snapshot).toEqual(before.snapshot);
   expect((await saved(page)).release.formatVersion).toBe(999);
@@ -149,7 +149,7 @@ test('двойной тап не расходует две карточки',asy
 });
 test('другая вкладка не перезаписывает новую revision',async({page,context})=>{
   await choose(page);
-  const other=await context.newPage();await other.goto('./');
+  const other=await context.newPage();await other.goto('./');await other.getByRole('button',{name:'Играть',exact:true}).click();
   await other.getByRole('button',{name:'Продолжить',exact:true}).click();
   await other.getByRole('button',{name:'Выбрать карточку',exact:true}).click();
   const latest=await saved(other);
@@ -168,7 +168,7 @@ test('полная колода исчерпана: только новая иг
       tx.oncomplete=()=>{db.close();resolve();};
     };
   }),DB);
-  await page.reload();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await expect(page.getByText('Все вопросы этой игры уже были показаны.',{exact:false})).toBeVisible();
   await expect(page.getByRole('button',{name:'Сменить тему'})).toHaveCount(0);
   expect((await saved(page)).snapshot.shownIds).toHaveLength(60);
@@ -182,7 +182,7 @@ test('холодный запуск без сети, PWA и изоляция п�
   const manifest=await page.evaluate(async()=> (await fetch('manifest.webmanifest')).json());
   expect(manifest.scope).toBe('./');expect(manifest.icons).toHaveLength(2);
   await page.close();await context.setOffline(true);
-  const cold=await context.newPage();cold.on('pageerror',e=>console.log('COLD PAGE ERROR',e.message));cold.on('requestfailed',r=>console.log('COLD FAILED',r.url(),r.failure()?.errorText));await cold.goto('./');
+  const cold=await context.newPage();cold.on('pageerror',e=>console.log('COLD PAGE ERROR',e.message));cold.on('requestfailed',r=>console.log('COLD FAILED',r.url(),r.failure()?.errorText));await cold.goto('./');await cold.getByRole('button',{name:'Играть',exact:true}).click();
   await cold.getByRole('button',{name:'Продолжить',exact:true}).click();
   expect(await saved(cold)).toEqual(before);
   await expect(cold.locator('.question-text')).toBeVisible();
@@ -218,7 +218,7 @@ test('цвета рулетки совпадают с выбранными пл�
   await expect(page.getByRole('dialog')).toContainText('все желающие');
   await expect(page.getByRole('dialog')).toContainText('Наслаждайся! Искренний ответ и молчаливое слушание сближают.');
   await expect(page.getByRole('dialog')).not.toContainText(/Выберите|нажмите|Не торопитесь/);
-  await expect(page.locator('.brand')).toHaveText('❋Сближение');
+  await expect(page.locator('.brand')).toHaveText('Сближение');
   await expect(page.locator('[data-action="pick:relationships"]')).toContainText('Отношения');
   await expect(page.locator('[data-action="pick:meanings"]')).toContainText('Ценности и смыслы');
   const manifest=await page.evaluate(async()=> (await fetch('manifest.webmanifest')).json());
@@ -264,8 +264,37 @@ test('рубашки одинаковые, раскладка восстанав
   await page.getByRole('button',{name:'Пропустить',exact:true}).click();
   await expect(page.locator('.card-back')).toHaveCount(9);
   const before=await saved(page);
-  await page.reload();
+  await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await expect(page.locator('.card-back')).toHaveCount(9);
   expect(await saved(page)).toEqual(before);
+});
+
+test('приветствие, инструкция с начала и фонарик после завершения',async({page})=>{
+  await page.setViewportSize({width:360,height:640});
+  await page.reload();
+  await expect(page.locator('.welcome-screen')).toBeVisible();
+  await expect(page.locator('.welcome-message')).toContainText('Цени время, проведённое вместе.');
+  await expect(page.locator('.welcome-logo')).toHaveJSProperty('naturalWidth',1418);
+  await page.screenshot({path:'test-results/screenshots/welcome.png',fullPage:true});
+  for(let i=0;i<2;i++) {
+    await page.getByRole('button',{name:'Как играть',exact:true}).click();
+    const rules=page.getByRole('dialog');
+    await expect.poll(()=>rules.evaluate(el=>el.scrollTop)).toBe(0);
+    await expect(rules.getByRole('heading',{name:'Как играть'})).toBeInViewport();
+    await expect(rules.locator('.dialog-copy p').first()).toBeInViewport();
+    await page.screenshot({path:'test-results/screenshots/rules.png',fullPage:true});
+    await rules.evaluate(el=>el.scrollTop=el.scrollHeight);
+    await rules.getByRole('button',{name:'Играть',exact:true}).click();
+  }
+  await page.locator('[data-action="enter"]').click();
+  await choose(page);
+  await page.getByRole('button',{name:'Завершить игру',exact:true}).click();
+  await page.getByRole('button',{name:'Завершить',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Спасибо за разговор'})).toBeVisible();
+  await expect(page.locator('.end-lantern')).toBeVisible();
+  await expect(page.locator('.rest-card')).toContainText('САМОЕ ВАЖНОЕ — БЫТЬ РЯДОМ');
+  await expect(page.locator('.rest-card')).toContainText('У каждой встречи — свои истории.');
+  await expect(page.locator('.rest-card')).toContainText('Возвращайся, когда захочется поговорить.');
+  await page.screenshot({path:'test-results/screenshots/ended.png',fullPage:true});
 });

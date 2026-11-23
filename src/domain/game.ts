@@ -1,17 +1,17 @@
 import deck from '../content/deck.json';
 export const DECK_VERSION = deck.deckVersion;
 export const THEMES = [
-  { id: 'childhood', label: 'Детство и воспоминания', short: 'Детство', color: '#946125', light: '#fff3dd', symbol: '☀' },
-  { id: 'self', label: 'Я и моя жизнь', short: 'О себе', color: '#406b9a', light: '#edf4ff', symbol: '✦' },
-  { id: 'relationships', label: 'Отношения', short: 'Близость', color: '#a44f65', light: '#ffedf2', symbol: '♡' },
-  { id: 'dreams', label: 'Мечты и желания', short: 'Мечты', color: '#68519c', light: '#f4efff', symbol: '✧' },
-  { id: 'meanings', label: 'Ценности и смыслы', short: 'О важном', color: '#267265', light: '#eaf7f0', symbol: '❋' },
-  { id: 'unexpected', label: 'Неожиданные вопросы', short: 'Сюрприз', color: '#a0512b', light: '#fff0e7', symbol: '☄' },
+  { id: 'childhood', label: 'Детство и воспоминания', short: 'Детство', color: '#789887', light: '#E2EAE3', symbol: '☀' },
+  { id: 'self', label: 'Я и моя жизнь', short: 'О себе', color: '#D9A79A', light: '#E2EAE3', symbol: '✦' },
+  { id: 'relationships', label: 'Отношения', short: 'Близость', color: '#29352F', light: '#E2EAE3', symbol: '♡' },
+  { id: 'dreams', label: 'Мечты и желания', short: 'Мечты', color: '#D9A79A', light: '#E2EAE3', symbol: '✧' },
+  { id: 'meanings', label: 'Ценности и смыслы', short: 'О важном', color: '#789887', light: '#E2EAE3', symbol: '❋' },
+  { id: 'unexpected', label: 'Неожиданные вопросы', short: 'Сюрприз', color: '#29352F', light: '#E2EAE3', symbol: '☄' },
 ] as const;
 export const DEPTHS = [
-  { value: 1, label: 'Лёгкий', description: 'Воспоминания, воображение и маленькие радости', color: '#267265', light: '#eaf7f0' },
-  { value: 2, label: 'Исследовательский', description: 'Личный опыт и неожиданные открытия', color: '#406b9a', light: '#edf4ff' },
-  { value: 3, label: 'Глубокий', description: 'Чувства, ценности и то, что особенно важно', color: '#68519c', light: '#f4efff' },
+  { value: 1, label: 'Лёгкий', description: 'Воспоминания, воображение и маленькие радости', color: '#29352F', light: '#F7F4EE' },
+  { value: 2, label: 'Исследовательский', description: 'Личный опыт и неожиданные открытия', color: '#789887', light: '#F7F4EE' },
+  { value: 3, label: 'Глубокий', description: 'Чувства, ценности и то, что особенно важно', color: '#789887', light: '#F7F4EE' },
 ] as const;
 export type ThemeId = typeof THEMES[number]['id'];
 export type Depth = 1 | 2 | 3;

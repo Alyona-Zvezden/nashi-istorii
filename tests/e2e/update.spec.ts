@@ -32,7 +32,7 @@ test('новый worker сохраняет выпуск активной игр�
   await new Promise<void>(resolve=>server.listen(48972,'0.0.0.0',resolve));
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try {
-    const page=await context.newPage();await page.goto('http://127.0.0.1:48972'+base);
+    const page=await context.newPage();await page.goto('http://127.0.0.1:48972'+base);await page.getByRole('button',{name:'Играть',exact:true}).click();
     await expect(page.locator('.page[data-offline-ready="true"]')).toBeVisible();
     await page.locator('[data-action="pick:childhood"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
@@ -53,7 +53,7 @@ test('новый worker сохраняет выпуск активной игр�
       });
     });
     expect(failed).toBe('failed');
-    await page.reload();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
+    await page.reload();await page.getByRole('button',{name:'Играть',exact:true}).click();await page.getByRole('button',{name:'Продолжить',exact:true}).click();
     await expect(page.locator('.question-text')).toHaveText(question!);
     await expect(page.locator('meta[name="app-release"]')).toHaveAttribute('content','release-a');
     incomplete=false;
@@ -62,7 +62,7 @@ test('новый worker сохраняет выпуск активной игр�
     await page.close();
     // Let the browser activate B with no remaining A clients; then return with no network.
     await context.setOffline(true);
-    const cold=await context.newPage();await cold.goto('http://127.0.0.1:48972'+base);
+    const cold=await context.newPage();await cold.goto('http://127.0.0.1:48972'+base);await cold.getByRole('button',{name:'Играть',exact:true}).click();
     await expect(cold.getByRole('heading',{name:'Продолжим разговор?'})).toBeVisible();
     await expect(cold.locator('meta[name="app-release"]')).toHaveAttribute('content','release-a');
     await expect(cold.getByText('Обновление готово.',{exact:false})).toBeVisible();
@@ -72,6 +72,8 @@ test('новый worker сохраняет выпуск активной игр�
     await cold.getByRole('button',{name:'Завершить',exact:true}).click();
     await expect(cold.getByRole('button',{name:'Обновить приложение'})).toBeVisible();
     await cold.getByRole('button',{name:'Обновить приложение'}).click();
+    await expect(cold.locator('.welcome-screen')).toBeVisible();
+    await cold.getByRole('button',{name:'Играть',exact:true}).click();
     await expect(cold.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
     await expect(cold.locator('meta[name="app-release"]')).toHaveAttribute('content','release-b');
     await expect(cold.locator('.page[data-offline-ready="true"]')).toBeVisible();

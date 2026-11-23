@@ -21,7 +21,7 @@ test('ошибка первой установки видима, повтор в
   await new Promise<void>(resolve=>server.listen(48973,'0.0.0.0',resolve));
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try {
-    const page=await context.newPage();await page.goto('http://127.0.0.1:48973'+base);
+    const page=await context.newPage();await page.goto('http://127.0.0.1:48973'+base);await page.getByRole('button',{name:'Играть',exact:true}).click();
     await expect(page.getByRole('heading',{name:'О чём поговорим?'})).toBeVisible();
     await expect(page.locator('.offline-status')).toHaveText('Не удалось подготовить игру без интернета');
     await expect(page.locator('.page[data-offline-ready="true"]')).toHaveCount(0);
@@ -33,7 +33,7 @@ test('ошибка первой установки видима, повтор в
     await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
     const question=await page.locator('.question-text').textContent();
     await page.close();await context.setOffline(true);
-    const cold=await context.newPage();await cold.goto('http://127.0.0.1:48973'+base);
+    const cold=await context.newPage();await cold.goto('http://127.0.0.1:48973'+base);await cold.getByRole('button',{name:'Играть',exact:true}).click();
     await cold.getByRole('button',{name:'Продолжить',exact:true}).click();
     await expect(cold.locator('.question-text')).toHaveText(question!);
   }finally{await context.close();await new Promise<void>(resolve=>server.close(()=>resolve()));}

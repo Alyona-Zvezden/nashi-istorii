@@ -6,6 +6,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]!));
 let session: Session | undefined;
 let key = fingerprint({});
+let welcome = true;
 let resume = false, invalid = false, ended = false, busy = false, spinning = false;
 let error = '', offline = 'Готовим игру для работы без интернета', ready = false, update = false;
 let pending: { candidate?: Session; after: () => void } | null = null;
@@ -26,24 +27,26 @@ function render() {
   const theme = THEMES.find(t => t.id === session?.themeId);
   const disabled = busy || spinning || !!error;
   let content = '';
-  if (invalid) {
+  if (welcome) {
+    content = '<section class="welcome-screen"><img class="welcome-logo" src="' + import.meta.env.BASE_URL + 'images/logo.png" alt="Открытая книга с сердцем"><h1 tabindex="-1">Сближение</h1><p class="welcome-message">Цени время, проведённое вместе.<br>Узнавай больше о тех, кто рядом.</p>' + button('Играть','enter','primary welcome-play',disabled) + '</section>';
+  } else if (invalid) {
     content = '<section class="rest-card"><div class="story-symbol">✧</div><h1 tabindex="-1">Сохранение недоступно</h1><p>Не удалось прочитать сохранённую игру. Она не была удалена. Можно попробовать ещё раз или явно начать новую.</p><div class="stack">' + button('Попробовать снова','reload','primary') + button('Начать новую игру','new') + '</div></section>';
   } else if (resume) {
     content = '<section class="rest-card"><div class="story-symbol">♡</div><p class="eyebrow">ВРЕМЯ ДРУГ ДЛЯ ДРУГА</p><h1 tabindex="-1">Продолжим разговор?</h1><p>Твоя игра здесь. Вернись к тому вопросу, на котором остановился разговор.</p><div class="stack">' + button('Продолжить','resume','primary',disabled) + button('Начать новую игру','new','secondary',disabled) + '</div></section>';
   } else if (ended) {
-    content = '<section class="rest-card"><div class="story-symbol">❋</div><p class="eyebrow">САМОЕ ВАЖНОЕ — БЫТЬ РЯДОМ</p><h1 tabindex="-1">Спасибо за разговор</h1><p>У каждой встречи — свои истории.<br>Возвращайся, когда захочется поговорить.</p>' + button('Начать новую игру','start','primary',disabled) + '</section>';
+    content = '<section class="rest-card"><img class="end-lantern" src="' + import.meta.env.BASE_URL + 'images/lantern.png" alt="Фонарик с сердцем"><p class="eyebrow">САМОЕ ВАЖНОЕ — БЫТЬ РЯДОМ</p><h1 tabindex="-1">Спасибо за разговор</h1><p>У каждой встречи — свои истории.<br>Возвращайся, когда захочется поговорить.</p>' + button('Начать новую игру','start','primary',disabled) + '</section>';
   } else if (phase === 'depth') {
     const count = available(session!).length;
     content = '<section class="card-selection"><div class="screen-intro"><p class="eyebrow">' + escape(theme!.label) + '</p><h1 tabindex="-1">Выбери карточку</h1><p>Любая из них — начало новой истории</p></div><div class="card-spread" aria-label="Карточки рубашкой вверх">' + Array.from({length:count},(_,i) => '<button class="card-back" data-action="draw:' + i + '" aria-label="Открыть карточку"' + (disabled ? ' disabled' : '') + '><span aria-hidden="true">❋</span></button>').join('') + '</div>' + button('Случайная карточка','draw','primary random-card',disabled || !count) + '</section>';
   } else if (phase === 'theme') {
     const isTheme = true;
     const selected = session?.themeId && themeAvailable(session,session.themeId) ? session.themeId : null;
-    const options = THEMES.map((t,i) => ({ key:t.id, label:t.label, color:themeAvailable(session,t.id) ? t.color : '#8a9690', light:t.light, symbol:t.symbol, short:String(i+1), note:themeAvailable(session,t.id) ? '' : 'Все вопросы сыграны' }));
+    const options = THEMES.map((t,i) => ({ key:t.id, label:t.label, color:themeAvailable(session,t.id) ? t.color : '#789887', light:t.light, symbol:t.symbol, short:String(i+1), note:themeAvailable(session,t.id) ? '' : 'Все вопросы сыграны' }));
     const heading = 'О чём поговорим?';
     const restingRotation = selected ? -(options.findIndex(t => String(t.key) === String(selected)) + .5) * 360/options.length : 0;
     content = '<section class="selection"><div class="screen-intro"><p class="eyebrow">' + (isTheme ? 'СЕМЕЙНАЯ ИГРА ДЛЯ ЖИВОГО РАЗГОВОРА' : escape(theme!.label).toUpperCase()) + '</p><h1 tabindex="-1">' + heading + '</h1><p>' + (isTheme ? 'Выбери тему или доверься случаю' : 'Глубина разговора — это открытость, а не сложность') + '</p></div><div class="choice-layout"><section class="roulette-panel" aria-label="Случайный выбор"><div class="wheel-wrap"><span class="pointer"></span><div class="wheel" style="transform:rotate(' + (spinning ? 0 : restingRotation) + 'deg)">' + wheel(options) + '</div></div><div class="roulette-caption"><p class="eyebrow">МАЛЕНЬКАЯ ИНТРИГА</p><p class="roulette-title">Пусть решит<br>рулетка</p>' + button(spinning ? 'Выбираем…' : 'Крутить','spin','spin-button',disabled) + '</div></section><section class="manual-panel" aria-label="' + (isTheme ? 'Темы' : 'Глубина разговора') + '"><div class="options ' + (isTheme ? '' : 'depth-options') + '">' + options.map(t => {
       const chosen = !spinning && String(selected) === String(t.key);
-      return '<button class="option ' + (chosen ? 'chosen' : '') + (!themeAvailable(session,t.key) ? ' depleted' : '') + '" data-action="pick:' + t.key + '" aria-pressed="' + chosen + '" style="--accent:' + t.color + ';--tint:' + t.light + '"' + (disabled || !themeAvailable(session,t.key) ? ' disabled' : '') + '><span class="option-symbol" aria-hidden="true">' + t.symbol + '</span><span><span class="option-title">' + escape(t.label) + '</span>' + (t.note ? '<span class="option-description">' + escape(t.note) + '</span>' : '') + '</span><span class="check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span></button>';
+      return '<button class="option ' + (chosen ? 'chosen' : '') + (!themeAvailable(session,t.key) ? ' depleted' : '') + '" data-action="pick:' + t.key + '" aria-pressed="' + chosen + '" style="--accent:' + t.color + ';--tint:' + t.light + ';--on-accent:' + (t.color.toUpperCase() === '#29352F' ? '#F7F4EE' : '#29352F') + '"' + (disabled || !themeAvailable(session,t.key) ? ' disabled' : '') + '><span class="option-symbol" aria-hidden="true">' + t.symbol + '</span><span><span class="option-title">' + escape(t.label) + '</span>' + (t.note ? '<span class="option-description">' + escape(t.note) + '</span>' : '') + '</span><span class="check" aria-hidden="true">' + (chosen ? '✓' : '') + '</span></button>';
     }).join('') + '</div>' + button('Продолжить','continue','primary continue',disabled || !selected)  + '</section></div><p class="gentle-note">' + (isTheme ? 'Здесь нет правильных ответов. Только твои истории.' : 'Можно выбрать другой уровень или пропустить любой вопрос.') + '</p></section>';
   } else if (phase === 'question') {
     const q = QUESTIONS.find(q => q.id === session!.currentQuestionId)!;
@@ -53,7 +56,7 @@ function render() {
     content = '<section class="rest-card"><div class="story-symbol">✦</div><h1 tabindex="-1">' + (all ? 'У каждой истории есть продолжение' : 'Попробуем другую тему?') + '</h1><p>' + (all ? 'Все вопросы этой игры уже были показаны. Можно начать новую игру или завершить разговор.' : 'Все вопросы этой темы уже показаны. Выбери другую тему или начни новую игру.') + '</p><div class="stack">' + (!all ? button('Сменить тему','change','primary',disabled) : '') + button('Начать новую игру','new',all ? 'primary' : 'secondary',disabled) + button('Завершить игру','end','text-button',disabled) + '</div></section>';
   }
   const focusKey = (document.activeElement as HTMLElement)?.dataset.action;
-  app.innerHTML = '<div class="page" data-screen="' + (resume || invalid || ended ? 'rest' : phase) + '" data-offline-ready="' + ready + '"><header class="site-header"><a class="brand" href="' + import.meta.env.BASE_URL + '" aria-label="Сближение — главная"><span class="brand-mark" aria-hidden="true">❋</span><span>Сближение</span></a>' + button('Как играть','rules','text-button') + '</header><main>' + (error ? '<div class="error" role="alert"><p>' + escape(error) + '</p>' + (pending ? button('Повторить','retry','secondary') : button('Загрузить сохранённую игру','reload','secondary')) + '</div>' : '') + content + '</main><footer>' + (!resume && phase === 'depth' ? button('Назад к темам','back','text-button',disabled) : '') + (session && !resume && !invalid && phase !== 'exhausted' ? button('Завершить игру','end','text-button',disabled) : '') + '<p class="offline-status" hidden>' + (ready ? '<span aria-hidden="true">✓ </span>' : '') + escape(offline) + '</p>' + (!ready && offline.startsWith('Не удалось') ? button('Повторить подготовку','offline','text-button') : '') + (update ? (session ? '<p>Обновление готово. Его можно применить после игры.</p>' : button('Обновить приложение','update','text-button')) : '') + '<p class="footer-line">Ближе друг к другу, история за историей</p></footer></div>';
+  app.innerHTML = '<div class="page" data-screen="' + (welcome ? 'welcome' : resume || invalid || ended ? 'rest' : phase) + '" data-offline-ready="' + ready + '"><header class="site-header"><a class="brand" href="' + import.meta.env.BASE_URL + '" aria-label="Сближение — главная"><img class="brand-mark" src="' + import.meta.env.BASE_URL + 'images/logo.png" alt=""><span>Сближение</span></a>' + button('Как играть','rules','text-button') + '</header><main>' + (error ? '<div class="error" role="alert"><p>' + escape(error) + '</p>' + (pending ? button('Повторить','retry','secondary') : button('Загрузить сохранённую игру','reload','secondary')) + '</div>' : '') + content + '</main><footer>' + (!welcome && !resume && phase === 'depth' ? button('Назад к темам','back','text-button',disabled) : '') + (session && !welcome && !resume && !invalid && phase !== 'exhausted' ? button('Завершить игру','end','text-button',disabled) : '') + '<p class="offline-status" hidden>' + (ready ? '<span aria-hidden="true">✓ </span>' : '') + escape(offline) + '</p>' + (!ready && offline.startsWith('Не удалось') ? button('Повторить подготовку','offline','text-button') : '') + (update ? (session ? '<p>Обновление готово. Его можно применить после игры.</p>' : button('Обновить приложение','update','text-button')) : '') + '<p class="footer-line">Ближе друг к другу, история за историей</p></footer></div>';
   app.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach(el => el.addEventListener('click', () => void handle(el.dataset.action!)));
   app.querySelector('.brand')?.addEventListener('click', e => { e.preventDefault(); if (!resume && session) void act({type:'change'}); });
   if (focusKey) app.querySelector<HTMLElement>('[data-action="' + focusKey + '"]')?.focus({ preventScroll: true });
@@ -62,11 +65,12 @@ function wheel(options: {key:string; color:string; light:string; symbol:string}[
   const n = options.length;
   const paths = options.map((option,i) => {
     const color = option.color;
+    const ink = color.toUpperCase() === '#29352F' ? '#F7F4EE' : '#29352F';
     const a = (i * 2 * Math.PI/n) - Math.PI/2, b = ((i+1)*2*Math.PI/n)-Math.PI/2;
     const mid = (a+b)/2;
-    return '<path data-option="' + option.key + '" d="M100 100 L' + (100+96*Math.cos(a)) + ' ' + (100+96*Math.sin(a)) + ' A96 96 0 0 1 ' + (100+96*Math.cos(b)) + ' ' + (100+96*Math.sin(b)) + 'Z" fill="' + color + '" stroke="#fff" stroke-width="2"/><text x="' + (100+63*Math.cos(mid)) + '" y="' + (106+63*Math.sin(mid)) + '" text-anchor="middle" fill="#fff" font-size="23" font-family="system-ui">' + option.symbol + '</text>';
+    return '<path data-option="' + option.key + '" d="M100 100 L' + (100+96*Math.cos(a)) + ' ' + (100+96*Math.sin(a)) + ' A96 96 0 0 1 ' + (100+96*Math.cos(b)) + ' ' + (100+96*Math.sin(b)) + 'Z" fill="' + color + '" stroke="#F7F4EE" stroke-width="2"/><text x="' + (100+63*Math.cos(mid)) + '" y="' + (106+63*Math.sin(mid)) + '" text-anchor="middle" fill="' + ink + '" font-size="23" font-family="system-ui">' + option.symbol + '</text>';
   }).join('');
-  return '<svg viewBox="0 0 200 200" aria-hidden="true">' + paths + '<circle cx="100" cy="100" r="24" fill="white"/><g class="wheel-center" fill="none" stroke="#255b52" stroke-width="2.5" stroke-linejoin="round"><path d="M86 86h21a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5H95l-7 6v-6h-2a5 5 0 0 1-5-5V91a5 5 0 0 1 5-5Z"/><path d="M117 96v13a6 6 0 0 1-6 6h-5l-1 5-6-5"/></g></svg>';
+  return '<svg viewBox="0 0 200 200" aria-hidden="true">' + paths + '<circle cx="100" cy="100" r="24" fill="#F7F4EE"/><g class="wheel-center" fill="none" stroke="#29352F" stroke-width="2.5" stroke-linejoin="round"><path d="M86 86h21a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5H95l-7 6v-6h-2a5 5 0 0 1-5-5V91a5 5 0 0 1 5-5Z"/><path d="M117 96v13a6 6 0 0 1-6 6h-5l-1 5-6-5"/></g></svg>';
 }
 async function commit(candidate: Session | undefined, after: () => void = () => {}) {
   if (busy) return false;
@@ -92,12 +96,14 @@ async function act(action: Action) {
 function focusHeading() { app.querySelector<HTMLElement>('h1')?.focus({ preventScroll:true }); window.scrollTo({ top:0, behavior:'instant' }); }
 function showDialog(title: string, body: string, confirmLabel?: string, confirmed?: () => void) {
   const source = document.activeElement as HTMLElement;
-  dialog.innerHTML = '<div class="dialog-inner"><h2>' + escape(title) + '</h2><div class="dialog-copy">' + body + '</div><div class="stack">' + (confirmLabel ? '<button class="primary" id="confirm-dialog">' + confirmLabel + '</button><button class="secondary" id="close-dialog">Остаться</button>' : '<button class="primary" id="close-dialog">' + (title === 'Как играть' ? 'Играть' : 'Понятно') + '</button>') + '</div></div>';
+  dialog.innerHTML = '<div class="dialog-inner"><h2 tabindex="-1">' + escape(title) + '</h2><div class="dialog-copy">' + body + '</div><div class="stack">' + (confirmLabel ? '<button class="primary" id="confirm-dialog">' + confirmLabel + '</button><button class="secondary" id="close-dialog">Остаться</button>' : '<button class="primary" id="close-dialog">' + (title === 'Как играть' ? 'Играть' : 'Понятно') + '</button>') + '</div></div>';
   dialog.querySelector('#close-dialog')!.addEventListener('click', () => dialog.close());
   dialog.querySelector('#confirm-dialog')?.addEventListener('click', () => { dialog.close(); confirmed?.(); });
   dialog.onclose = () => source?.isConnected && source.focus();
   dialog.showModal();
-  dialog.querySelector<HTMLButtonElement>(confirmLabel ? '#close-dialog' : '#close-dialog')!.focus();
+  const initialFocus = title === 'Как играть' ? dialog.querySelector<HTMLElement>('h2')! : dialog.querySelector<HTMLElement>('#close-dialog')!;
+  initialFocus.focus({preventScroll:true});
+  dialog.scrollTop = 0;
 }
 async function handle(action: string) {
   if (action === 'rules') {
@@ -115,6 +121,7 @@ async function handle(action: string) {
     return;
   }
   if (busy || spinning || error) return;
+  if (action === 'enter') { welcome=false; render(); focusHeading(); return; }
   if (action === 'resume') { resume = false; render(); focusHeading(); return; }
   if (action === 'new') {
     showDialog('Начать новую игру?', '<p>Текущая игра будет завершена. Все вопросы снова станут доступны.</p>', 'Начать новую', () => {

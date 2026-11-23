@@ -17,5 +17,5 @@ await writeFile(out + '/sw.js', sw.replaceAll('__PRECACHE__', JSON.stringify(fil
 await writeFile(out + '/release.json', JSON.stringify({ ...info, files }));
 let size = 0;
 for (const path of await walk(out)) size += (await readFile(path)).length;
-if (size > 2 * 1024 * 1024) throw new Error('Сборка превышает 2 МиБ');
+if (size > 4 * 1024 * 1024) throw new Error('Сборка превышает 4 МиБ');
 console.log('Полный автономный выпуск: ' + files.length + ' ресурсов, ' + size + ' байт.');
