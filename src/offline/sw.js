@@ -54,7 +54,7 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     if (event.request.mode === 'navigate') {
       const recovery = async () => (await (await caches.open(ownCache)).match(base + 'index.html'))
-        || new Response('Не удалось открыть сохранённый выпуск. Подключитесь к интернету и попробуйте снова. Данные не удалены.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+        || new Response('Не удалось открыть сохранённый выпуск. Подключись к интернету и попробуй снова. Данные не удалены.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       try {
         const raw = await readRaw();
         const pin = raw.release;

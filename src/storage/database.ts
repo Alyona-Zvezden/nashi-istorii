@@ -10,7 +10,7 @@ export function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains('session')) db.createObjectStore('session');
       if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
     };
-    request.onblocked = () => { settled = true; reject(new Error('Закройте другую вкладку игры и попробуйте снова')); };
+    request.onblocked = () => { settled = true; reject(new Error('Закрой другую вкладку игры и попробуй снова')); };
     request.onerror = () => reject(new Error('Не удалось открыть сохранение на этом устройстве'));
     request.onsuccess = () => {
       if (settled) { request.result.close(); return; }
@@ -36,7 +36,7 @@ export async function commitRaw(expected: string, snapshot: unknown, release: un
   return new Promise((resolve, reject) => {
     let tx: IDBTransaction;
     try { tx = db.transaction(['session', 'meta'], 'readwrite'); }
-    catch { db.close(); reject(new Error('Не удалось сохранить ход игры. Попробуйте ещё раз')); return; }
+    catch { db.close(); reject(new Error('Не удалось сохранить ход игры. Попробуй ещё раз')); return; }
     const s = tx.objectStore('session').get('active');
     const m = tx.objectStore('meta').get('activeRelease');
     let count = 0;
@@ -51,7 +51,7 @@ export async function commitRaw(expected: string, snapshot: unknown, release: un
     tx.oncomplete = () => { db.close(); resolve(fingerprint({ snapshot, release })); };
     tx.onabort = tx.onerror = () => {
       db.close();
-      reject(new Error(conflict ? 'Игра изменилась в другой вкладке' : 'Не удалось сохранить ход игры. Попробуйте ещё раз'));
+      reject(new Error(conflict ? 'Игра изменилась в другой вкладке' : 'Не удалось сохранить ход игры. Попробуй ещё раз'));
     };
   });
 }

@@ -51,7 +51,7 @@ test('рулетка ждёт подтверждения и позволяет �
   await expect(page.locator('.wheel')).toHaveAttribute('style',/rotate\(-30deg\)/);
   await page.locator('[data-action="pick:dreams"]').click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Выберите карточку'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Выбери карточку'})).toBeVisible();
   await expect(page.locator('.card-back')).toHaveCount(10);
   expect((await saved(page)).snapshot.shownIds).toEqual([]);
 });
@@ -216,8 +216,15 @@ test('цвета рулетки совпадают с выбранными пл�
   await expect(page.locator('.wheel text').filter({hasText:'✦'})).toHaveCount(1);
   await page.getByRole('button',{name:'Как играть'}).click();
   await expect(page.getByRole('dialog')).toContainText('все желающие');
+  await expect(page.getByRole('dialog')).toContainText('Наслаждайся! Искренний ответ и молчаливое слушание сближают.');
+  await expect(page.getByRole('dialog')).not.toContainText(/Выберите|нажмите|Не торопитесь/);
+  await expect(page.locator('.brand')).toHaveText('❋Сближение');
+  await expect(page.locator('[data-action="pick:relationships"]')).toContainText('Отношения');
+  await expect(page.locator('[data-action="pick:meanings"]')).toContainText('Ценности и смыслы');
+  const manifest=await page.evaluate(async()=> (await fetch('manifest.webmanifest')).json());
+  expect(manifest.name).toBe('Сближение');expect(manifest.short_name).toBe('Сближение');
   await expect(page.getByRole('dialog')).not.toContainText(/обе|одна говорит|другая слушает/);
-  await page.getByRole('button',{name:'Понятно'}).click();
+  await page.getByRole('button',{name:'Играть',exact:true}).click();
   await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await page.getByRole('button',{name:'Случайная карточка',exact:true}).click();
   await expect(page.locator('.gentle-note')).toContainText('Каждый может ответить');
@@ -233,7 +240,7 @@ test('основные экраны помещаются по высоте те�
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await page.locator('[data-action="pick:unexpected"]').click();
     await page.getByRole('button',{name:'Продолжить',exact:true}).click();
-    await expect(page.getByRole('heading',{name:'Выберите карточку'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Выбери карточку'})).toBeVisible();
     expect(await fits(),JSON.stringify(await page.evaluate(()=>({height:innerHeight,scroll:document.documentElement.scrollHeight,blocks:[...document.querySelectorAll('.site-header,.screen-intro,.roulette-panel,.options,.selected-result,.continue,footer,.manual-panel>.text-button')].map(e=>({class:e.className,height:e.getBoundingClientRect().height}))})))).toBe(true);
     await page.locator('.card-back').first().click();
     await expect(page.locator('.question-text')).toBeVisible();

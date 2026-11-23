@@ -3,9 +3,9 @@ export const DECK_VERSION = deck.deckVersion;
 export const THEMES = [
   { id: 'childhood', label: 'Детство и воспоминания', short: 'Детство', color: '#946125', light: '#fff3dd', symbol: '☀' },
   { id: 'self', label: 'Я и моя жизнь', short: 'О себе', color: '#406b9a', light: '#edf4ff', symbol: '✦' },
-  { id: 'relationships', label: 'Любовь и отношения', short: 'Близость', color: '#a44f65', light: '#ffedf2', symbol: '♡' },
+  { id: 'relationships', label: 'Отношения', short: 'Близость', color: '#a44f65', light: '#ffedf2', symbol: '♡' },
   { id: 'dreams', label: 'Мечты и желания', short: 'Мечты', color: '#68519c', light: '#f4efff', symbol: '✧' },
-  { id: 'meanings', label: 'Жизнь и её смыслы', short: 'О важном', color: '#267265', light: '#eaf7f0', symbol: '❋' },
+  { id: 'meanings', label: 'Ценности и смыслы', short: 'О важном', color: '#267265', light: '#eaf7f0', symbol: '❋' },
   { id: 'unexpected', label: 'Неожиданные вопросы', short: 'Сюрприз', color: '#a0512b', light: '#fff0e7', symbol: '☄' },
 ] as const;
 export const DEPTHS = [
@@ -51,18 +51,18 @@ export function transition(s: Session, action: Action, random = Math.random): Se
   };
   switch (action.type) {
     case 'theme':
-      if (s.phase !== 'theme' || !THEMES.some(t => t.id === action.value) || !themeAvailable(s, action.value)) throw new Error('Выберите тему');
+      if (s.phase !== 'theme' || !THEMES.some(t => t.id === action.value) || !themeAvailable(s, action.value)) throw new Error('Выбери тему');
       next.themeId = action.value; break;
     case 'depth':
-      if (s.phase !== 'depth' || ![1,2,3].includes(action.value)) throw new Error('Выберите глубину');
+      if (s.phase !== 'depth' || ![1,2,3].includes(action.value)) throw new Error('Выбери глубину');
       next.depth = action.value; break;
     case 'continue':
       if (s.phase === 'theme' && s.themeId) next.phase = 'depth';
       else if (s.phase === 'depth') draw();
-      else throw new Error('Сначала сделайте выбор');
+      else throw new Error('Сначала сделай выбор');
       break;
     case 'draw':
-      if (s.phase !== 'depth') throw new Error('Откройте раскладку');
+      if (s.phase !== 'depth') throw new Error('Открой раскладку');
       draw(action.index); break;
     case 'layout':
       if (s.phase !== 'question') throw new Error('Карточка не открыта');
